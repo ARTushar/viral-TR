@@ -59,6 +59,7 @@ class SimpleModel(pl.LightningModule):
         line2 = self.linear2(line1)
         # print(line2.shape, '-> linear 2')
         probs = self.softmax(line2)
+        # print(probs.shape, '-> softmax')
         return probs
     
     def training_step(self, train_batch, batch_idx):
