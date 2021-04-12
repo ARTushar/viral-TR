@@ -10,3 +10,11 @@
 
 # Local History for Visual Studio Code
 .history/
+
+# lightning logs
+*/lightning_logs
+
+# dataset
+
+*/dataset/*
+!*/dataset/raw
