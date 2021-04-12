@@ -33,13 +33,17 @@ import pytorch_lightning as pl
 from pytorch_lightning.metrics import Accuracy
 
 
+PRINT = False
+
+
 class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
         self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        self.max_pool1d = nn.MaxPool1d(kernel_size=290)
+        self.energy = nn.Softmax(dim=1)
+        self.max_pool1d = nn.MaxPool1d(kernel_size=29)
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(in_features=512, out_features=32)
+        self.linear1 = nn.Linear(in_features=5120, out_features=32)
         self.linear2 = nn.Linear(in_features=32, out_features=2)
         self.softmax = nn.Softmax(dim=1)
 
@@ -50,23 +54,24 @@ class SimpleModel(pl.LightningModule):
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         conv_fw = self.conv1d(x_fw)
-        # print(conv_fw.shape, '-> forward conv')
         conv_rv = self.conv1d(x_rv)
-        # print(conv_rv.shape, '-> reverse conv')
         merged = torch.cat((conv_fw, conv_rv), dim=2)
-        # print(merged.shape, '-> concat')
         max_pooled = self.max_pool1d(merged)
-        # print(max_pooled.shape, '-> max pool')
         flat = self.flatten(max_pooled)
-        # print(flat.shape, '-> flatten')
         line1 = self.linear1(flat)
-        # print(line1.shape, '-> linear 1')
         relu1 = F.relu(line1)
-        # print(relu1.shape, '-> relu 1')
         line2 = self.linear2(relu1)
-        # print(line2.shape, '-> linear 2')
         probs = self.softmax(line2)
-        # print(probs.shape, '-> softmax')
+        if PRINT:
+            print(conv_fw.shape, '-> forward conv')
+            print(conv_rv.shape, '-> reverse conv')
+            print(merged.shape, '-> concat')
+            print(max_pooled.shape, '-> max pool')
+            print(flat.shape, '-> flatten')
+            print(line1.shape, '-> linear 1')
+            print(relu1.shape, '-> relu 1')
+            print(line2.shape, '-> linear 2')
+            print(probs.shape, '-> softmax')
         return probs
     
     def training_step(self, train_batch, batch_idx):
@@ -105,9 +110,14 @@ class SimpleModel(pl.LightningModule):
         return optimizer
     
     def cross_entropy_loss(self, logits, labels):
-        return F.binary_cross_entropy(logits, labels)
+        bce_loss = F.binary_cross_entropy(logits, labels)
+        all_linear1_params = torch.cat([x.view(-1) for x in self.linear1.parameters()])
+        reg_loss = 0.0035 * torch.norm(all_linear1_params, 1)
+        return bce_loss + reg_loss
     
 
 
-# model = SimpleModel() # to(device)
-# ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
+if __name__ == '__main__':
+    PRINT = True
+    model = SimpleModel() # to(device)
+    ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))

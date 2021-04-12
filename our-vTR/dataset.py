@@ -8,6 +8,9 @@ from utils.splitter import splitter
 from utils.transforms import transform_all_sequences, transform_all_labels 
 
 
+WORKERS = 2
+
+
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)
 
 class CustomSequenceDataset(Dataset):
@@ -70,13 +73,13 @@ class SequenceDataModule(pl.LightningDataModule):
             self.test_data = CustomSequenceDataset(test_file_in, test_file_out, transform_all_sequences, transform_all_labels)
     
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True , num_workers=4)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True , num_workers=WORKERS)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=4)
+        return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=WORKERS)
     
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=4)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=WORKERS)
 
 
 def main():

@@ -11,7 +11,7 @@ def main():
     trainer = pl.Trainer(gpus=1, max_epochs=10)
     start_time = time.time()
     trainer.fit(model, datamodule=data_module)
-    print(f'---- {time.time() - start_time} seconds ----\n\n\n')
+    print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
     trainer.test(model, datamodule=data_module)
 
