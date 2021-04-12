@@ -35,8 +35,8 @@ import pytorch_lightning as pl
 class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
-        self.conv1d_fw = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        self.conv1d_rv = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
+        self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
+        # self.conv1d_rv = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=512, out_features=32)
@@ -44,9 +44,9 @@ class SimpleModel(pl.LightningModule):
         self.softmax = nn.Softmax(dim=0)
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
-        conv_fw = self.conv1d_fw(x_fw)
+        conv_fw = self.conv1d(x_fw)
         # print(conv_fw.shape, '-> forward conv')
-        conv_rv = self.conv1d_rv(x_rv)
+        conv_rv = self.conv1d(x_rv)
         # print(conv_rv.shape, '-> reverse conv')
         merged = torch.cat((conv_fw, conv_rv), dim=2)
         # print(merged.shape, '-> concat')
@@ -67,6 +67,7 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+
         self.log('train_loss', loss)
         return loss
     
@@ -74,10 +75,11 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+        
         self.log('val_loss', loss)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3, weight_decay=1e-5)
         return optimizer
     
     def cross_entropy_loss(self, logits, labels):
