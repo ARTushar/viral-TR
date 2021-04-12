@@ -30,18 +30,20 @@ from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
+from pytorch_lightning.metrics import Accuracy
 
 
 class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
         self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        # self.conv1d_rv = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=512, out_features=32)
         self.linear2 = nn.Linear(in_features=32, out_features=2)
-        self.softmax = nn.Softmax(dim=0)
+        self.softmax = nn.Softmax(dim=1)
+
+        self.metric = Accuracy()
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         conv_fw = self.conv1d(x_fw)
@@ -56,7 +58,9 @@ class SimpleModel(pl.LightningModule):
         # print(flat.shape, '-> flatten')
         line1 = self.linear1(flat)
         # print(line1.shape, '-> linear 1')
-        line2 = self.linear2(line1)
+        relu1 = F.relu(line1)
+        # print(relu1.shape, '-> relu 1')
+        line2 = self.linear2(relu1)
         # print(line2.shape, '-> linear 2')
         probs = self.softmax(line2)
         # print(probs.shape, '-> softmax')
@@ -68,16 +72,29 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+        # acc = self.metric(logits, y)
 
         self.log('train_loss', loss)
+        # self.log('train_acc', acc)
         return loss
     
     def validation_step(self, val_batch, batch_idx):
         X_fw, X_rv, y = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+        # acc = self.metric(logits, y)
         
         self.log('val_loss', loss)
+        # self.log('val_acc', acc)
+
+    def test_step(self, test_batch, batch_idx):
+        X_fw, X_rv, y = test_batch
+        logits = self.forward(X_fw, X_rv)
+        loss = self.cross_entropy_loss(logits, y)
+        # acc = self.metric(logits, y)
+
+        self.log('test_loss', loss)
+        # self.log('test_acc', acc)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3, weight_decay=1e-5)

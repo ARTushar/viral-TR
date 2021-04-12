@@ -72,7 +72,7 @@ class SequenceDataModule(pl.LightningDataModule):
         return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=4)
     
     def test_dataloader(self):
-        return DataLoader(self.test_data, batch_size=self.batch_size)
+        return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=4)
 
 
 def main():
