@@ -1,14 +1,8 @@
-import math
 import os
 import pytorch_lightning as pl
 from torch.utils.data import Dataset
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-import random
 from typing import Callable, Optional
-from torch.utils.data import dataloader
-
 from torch.utils.data.dataloader import DataLoader
-
 from utils.splitter import splitter
 from utils.transforms import transform_input, transform_label
 
@@ -78,11 +72,10 @@ class SequenceDataModule(pl.LightningDataModule):
             self.test_data = CustomSequenceDataset(test_file_in, test_file_out, transform_input, transform_label)
     
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, num_workers=4)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data , batch_size=self.batch_size, shuffle=True)
+        return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=4)
     
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size)
-        

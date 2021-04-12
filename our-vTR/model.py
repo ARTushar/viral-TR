@@ -29,11 +29,12 @@ import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
+import pytorch_lightning as pl
 
 
-class SimpleModel(nn.Module):
+class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
-        super().__init__()
+        super(SimpleModel, self).__init__()
         self.conv1d_fw = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.conv1d_rv = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
@@ -59,6 +60,29 @@ class SimpleModel(nn.Module):
         # print(line2.shape, '-> linear 2')
         probs = self.softmax(line2)
         return probs
+    
+    def training_step(self, train_batch, batch_idx):
+        # define the training loop
+
+        X_fw, X_rv, y = train_batch
+        logits = self.forward(X_fw, X_rv)
+        loss = self.cross_entropy_loss(logits, y)
+        self.log('train_loss', loss)
+        return loss
+    
+    def validation_step(self, val_batch, batch_idx):
+        X_fw, X_rv, y = val_batch
+        logits = self.forward(X_fw, X_rv)
+        loss = self.cross_entropy_loss(logits, y)
+        self.log('val_loss', loss)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+        return optimizer
+    
+    def cross_entropy_loss(self, logits, labels):
+        return F.binary_cross_entropy(logits, labels)
+    
 
 
 # model = SimpleModel() # to(device)
