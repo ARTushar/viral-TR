@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 def main():
     data_module = SequenceDataModule('dataset', 'sequences.fa', 'wt_readout.dat', batch_size=64)
     model = SimpleModel()
-    trainer = pl.Trainer(max_epochs=10)
+    trainer = pl.Trainer(gpus=1, max_epochs=50)
     trainer.fit(model, datamodule=data_module)
 
 if __name__ == "__main__":

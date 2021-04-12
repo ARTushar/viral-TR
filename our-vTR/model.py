@@ -36,7 +36,6 @@ class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
         self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        # self.conv1d_rv = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=512, out_features=32)
@@ -49,18 +48,22 @@ class SimpleModel(pl.LightningModule):
         conv_rv = self.conv1d(x_rv)
         # print(conv_rv.shape, '-> reverse conv')
         merged = torch.cat((conv_fw, conv_rv), dim=2)
+        relud = F.relu(merged)
         # print(merged.shape, '-> concat')
-        max_pooled = self.max_pool1d(merged)
+        max_pooled = self.max_pool1d(relud)
         # print(max_pooled.shape, '-> max pool')
         flat = self.flatten(max_pooled)
         # print(flat.shape, '-> flatten')
         line1 = self.linear1(flat)
+        relu1 = F.relu(line1)
         # print(line1.shape, '-> linear 1')
-        line2 = self.linear2(line1)
+        line2 = self.linear2(relu1)
+        # relu2 = F.relu(line2)
         # print(line2.shape, '-> linear 2')
-        probs = self.softmax(line2)
+        # probs = self.softmax(relu2)
+        # probs = relu2
         # print(probs.shape, '-> softmax')
-        return probs
+        return line2
     
     def training_step(self, train_batch, batch_idx):
         # define the training loop
@@ -80,7 +83,7 @@ class SimpleModel(pl.LightningModule):
         self.log('val_loss', loss)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3, weight_decay=1e-5)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
     
     def cross_entropy_loss(self, logits, labels):

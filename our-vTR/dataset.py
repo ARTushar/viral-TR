@@ -66,10 +66,10 @@ class SequenceDataModule(pl.LightningDataModule):
             self.test_data = CustomSequenceDataset(test_file_in, test_file_out, transform_all_sequences, transform_all_labels)
     
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True , num_workers=4)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True , num_workers=2)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=4)
+        return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=2)
     
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size)
