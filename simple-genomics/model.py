@@ -35,21 +35,22 @@ import pytorch_lightning as pl
 class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
-        self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        self.max_pool1d = nn.MaxPool1d(kernel_size=290)
+        self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=32)
+        self.max_pool1d = nn.MaxPool1d(kernel_size=4)
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(in_features=512, out_features=32)
-        self.linear2 = nn.Linear(in_features=32, out_features=2)
+        self.linear1 = nn.Linear(in_features=288, out_features=16)
+        self.linear2 = nn.Linear(in_features=16, out_features=2)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         conv_fw = self.conv1d(x_fw)
         # print(conv_fw.shape, '-> forward conv')
-        conv_rv = self.conv1d(x_rv)
+        # conv_rv = self.conv1d(x_rv)
         # print(conv_rv.shape, '-> reverse conv')
-        merged = torch.cat((conv_fw, conv_rv), dim=2)
+        # merged = torch.cat((conv_fw, conv_rv), dim=2)
+        # relud = F.relu(merged)
         # print(merged.shape, '-> concat')
-        max_pooled = self.max_pool1d(merged)
+        max_pooled = self.max_pool1d(conv_fw)
         # print(max_pooled.shape, '-> max pool')
         flat = self.flatten(max_pooled)
         # print(flat.shape, '-> flatten')
@@ -62,7 +63,7 @@ class SimpleModel(pl.LightningModule):
         probs = self.softmax(line2)
         # probs = relu2
         # print(probs.shape, '-> softmax')
-        return line2
+        return probs 
     
     def training_step(self, train_batch, batch_idx):
         # define the training loop
