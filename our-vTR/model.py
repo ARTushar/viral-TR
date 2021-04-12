@@ -43,7 +43,10 @@ class SimpleModel(pl.LightningModule):
         self.linear2 = nn.Linear(in_features=32, out_features=2)
         self.softmax = nn.Softmax(dim=1)
 
-        self.metric = Accuracy()
+        metric = Accuracy()
+        self.train_metric = metric.clone()
+        self.valid_metric = metric.clone()
+        self.test_metric = metric.clone()
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         conv_fw = self.conv1d(x_fw)
@@ -72,32 +75,33 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        # acc = self.metric(logits, y)
+        acc = 100*self.train_metric(logits, y.type(torch.int))
 
         self.log('train_loss', loss)
-        # self.log('train_acc', acc)
+        self.log('train_acc', acc, prog_bar=True)
+
         return loss
     
     def validation_step(self, val_batch, batch_idx):
         X_fw, X_rv, y = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        # acc = self.metric(logits, y)
+        acc = 100*self.valid_metric(logits, y.type(torch.int))
         
         self.log('val_loss', loss)
-        # self.log('val_acc', acc)
+        self.log('val_acc', acc, prog_bar=True)
 
     def test_step(self, test_batch, batch_idx):
         X_fw, X_rv, y = test_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        # acc = self.metric(logits, y)
+        acc = 100*self.test_metric(logits, y.type(torch.int))
 
         self.log('test_loss', loss)
-        # self.log('test_acc', acc)
+        self.log('test_acc', acc)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3, weight_decay=1e-5)
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
     
     def cross_entropy_loss(self, logits, labels):

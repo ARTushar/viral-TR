@@ -24,6 +24,10 @@ class CustomSequenceDataset(Dataset):
         self.forward_sequences, self.reverse_sequences = transform(sequences)
         self.labels = target_transform(labels)
 
+        # self.forward_sequences = self.forward_sequences[0:128]
+        # self.reverse_sequences = self.reverse_sequences[0:128]
+        # self.labels = self.labels[0:128]
+
 
     def __len__(self) -> int:
         return len(self.labels)
