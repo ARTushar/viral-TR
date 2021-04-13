@@ -30,6 +30,10 @@ from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
+from pytorch_lightning.metrics import Accuracy
+
+
+PRINT = False
 
 
 class SimpleModel(pl.LightningModule):
@@ -38,31 +42,36 @@ class SimpleModel(pl.LightningModule):
         self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(in_features=512, out_features=32)
+        self.linear1 = nn.Linear(in_features=5120, out_features=32)
         self.linear2 = nn.Linear(in_features=32, out_features=2)
         self.softmax = nn.Softmax(dim=1)
 
+        metric = Accuracy()
+        self.train_metric = metric.clone()
+        self.valid_metric = metric.clone()
+        self.test_metric = metric.clone()
+
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         conv_fw = self.conv1d(x_fw)
-        # print(conv_fw.shape, '-> forward conv')
         conv_rv = self.conv1d(x_rv)
-        # print(conv_rv.shape, '-> reverse conv')
         merged = torch.cat((conv_fw, conv_rv), dim=2)
-        # print(merged.shape, '-> concat')
         max_pooled = self.max_pool1d(merged)
-        # print(max_pooled.shape, '-> max pool')
         flat = self.flatten(max_pooled)
-        # print(flat.shape, '-> flatten')
         line1 = self.linear1(flat)
         relu1 = F.relu(line1)
-        # print(line1.shape, '-> linear 1')
         line2 = self.linear2(relu1)
-        # relu2 = F.relu(line2)
-        # print(line2.shape, '-> linear 2')
         probs = self.softmax(line2)
-        # probs = relu2
-        # print(probs.shape, '-> softmax')
-        return probs 
+        if PRINT:
+            print(conv_fw.shape, '-> forward conv')
+            print(conv_rv.shape, '-> reverse conv')
+            print(merged.shape, '-> concat')
+            print(max_pooled.shape, '-> max pool')
+            print(flat.shape, '-> flatten')
+            print(line1.shape, '-> linear 1')
+            print(relu1.shape, '-> relu 1')
+            print(line2.shape, '-> linear 2')
+            print(probs.shape, '-> softmax')
+        return probs
     
     def training_step(self, train_batch, batch_idx):
         # define the training loop
@@ -70,25 +79,44 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+        acc = 100*self.train_metric(logits, y.type(torch.int))
 
         self.log('train_loss', loss)
+        self.log('train_acc', acc, prog_bar=True)
+
         return loss
     
     def validation_step(self, val_batch, batch_idx):
         X_fw, X_rv, y = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+        acc = 100*self.valid_metric(logits, y.type(torch.int))
         
         self.log('val_loss', loss)
+        self.log('val_acc', acc, prog_bar=True)
+
+    def test_step(self, test_batch, batch_idx):
+        X_fw, X_rv, y = test_batch
+        logits = self.forward(X_fw, X_rv)
+        loss = self.cross_entropy_loss(logits, y)
+        acc = 100*self.test_metric(logits, y.type(torch.int))
+
+        self.log('test_loss', loss)
+        self.log('test_acc', acc)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
     
     def cross_entropy_loss(self, logits, labels):
-        return F.binary_cross_entropy(logits, labels)
+        bce_loss = F.binary_cross_entropy(logits, labels)
+        all_linear1_params = torch.cat([x.view(-1) for x in self.linear1.parameters()])
+        reg_loss = 0.0035 * torch.norm(all_linear1_params, 1)
+        return bce_loss + reg_loss
     
 
 
-# model = SimpleModel() # to(device)
-# ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
+if __name__ == '__main__':
+    PRINT = True
+    model = SimpleModel() # to(device)
+    ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))

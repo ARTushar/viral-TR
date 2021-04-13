@@ -17,3 +17,5 @@
 
 */dataset/*
 !*/dataset/raw
+*/dummyset/*
+!*/dummyset/generatory.py
