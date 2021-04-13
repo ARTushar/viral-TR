@@ -5,7 +5,7 @@ from dataset import SequenceDataModule
 from model import SimpleModel
 import pytorch_lightning as pl
 
-SEED = 4
+SEED = 70 
 pl.seed_everything(SEED)
 
 def main(args):

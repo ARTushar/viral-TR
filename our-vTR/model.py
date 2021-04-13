@@ -1,9 +1,10 @@
+from torchmetrics import Precision, Recall, Accuracy, AUROC, F1, MetricCollection
 import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
-from pytorch_lightning.metrics import Accuracy
+from torchmetrics.functional import auroc
 
 PRINT = False
 
@@ -17,10 +18,17 @@ class SimpleModel(pl.LightningModule):
         self.linear2 = nn.Linear(in_features=32, out_features=2)
         self.softmax = nn.Softmax(dim=1)
 
-        metric = Accuracy()
-        self.train_metric = metric.clone()
-        self.valid_metric = metric.clone()
-        self.test_metric = metric.clone()
+        # TO DO: Check macro vs micro average
+
+        metrics = MetricCollection([
+            Accuracy(),
+            Precision(num_classes=2), 
+            Recall(num_classes=2), 
+            # AUROC(num_classes=2), 
+        ])
+        self.train_metrics = metrics.clone()
+        self.valid_metrics = metrics.clone()
+        self.test_metrics = metrics.clone()
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         conv_fw = self.conv1d(x_fw)
@@ -50,44 +58,51 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        acc = 100*self.train_metric(logits, y.type(torch.int))
+
+        self.train_metrics(logits, y.type(torch.int))
 
         self.log('train_loss', loss)
-        self.log('train_acc', acc, prog_bar=True)
+        self.log_dict(self.train_metrics, on_step=True,
+                      on_epoch=False, prog_bar=False,)
 
         return loss
-    
+
     def validation_step(self, val_batch, batch_idx):
         X_fw, X_rv, y = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        acc = 100*self.valid_metric(logits, y.type(torch.int))
-        
-        self.log('val_loss', loss)
-        self.log('val_acc', acc, prog_bar=True)
+
+        self.valid_metrics(logits, y.type(torch.int))
+
+        self.log('val_loss', loss, on_epoch=True)
+        self.log_dict(self.valid_metrics, on_step=True,
+                      on_epoch=True, prog_bar=False,)
 
     def test_step(self, test_batch, batch_idx):
         X_fw, X_rv, y = test_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        acc = 100*self.test_metric(logits, y.type(torch.int))
+        
+        self.test_metrics(logits, y.type(torch.int))
 
         self.log('test_loss', loss)
-        self.log('test_acc', acc)
+        self.log('test_auroc', auroc(logits, y.type(torch.int), num_classes=2))
+        self.log_dict(self.test_metrics)
+
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
-    
+
     def cross_entropy_loss(self, logits, labels):
         bce_loss = F.binary_cross_entropy(logits, labels)
-        all_linear1_params = torch.cat([x.view(-1) for x in self.linear1.parameters()])
+        all_linear1_params = torch.cat(
+            [x.view(-1) for x in self.linear1.parameters()])
         reg_loss = 0.0035 * torch.norm(all_linear1_params, 1)
         return bce_loss + reg_loss
-    
 
 
 if __name__ == '__main__':
     PRINT = True
-    model = SimpleModel() # to(device)
+    model = SimpleModel()  # to(device)
     ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
