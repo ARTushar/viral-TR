@@ -12,8 +12,8 @@ def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, sampl
             fo.write(sample[1])
 
 
-def splitter(directory:str, raw_in:str, raw_out:str, seed:int) -> None:
-    rand = random.Random(seed)
+def splitter(directory:str, raw_in:str, raw_out:str) -> None:
+    # rand = random.Random(seed)
 
     all_seqs = []
 
@@ -42,7 +42,7 @@ def splitter(directory:str, raw_in:str, raw_out:str, seed:int) -> None:
         all_labels = list(fo.readlines())
 
     all_together = list(zip(all_seqs, all_labels))
-    rand.shuffle(all_together)
+    random.shuffle(all_together)
 
     train_split = math.floor(0.9 * len(all_together))
     cv_split = math.floor(0.02 * len(all_together))

@@ -1,30 +1,3 @@
-# Model: "model"
-# __________________________________________________________________________________________________
-# Layer (type)                    Output Shape         Param #     Connected to                     
-# ==================================================================================================
-# forward (InputLayer)            [(None, 156, 4)]     0                                            
-# __________________________________________________________________________________________________
-# reverse (InputLayer)            [(None, 156, 4)]     0                                            
-# __________________________________________________________________________________________________
-# convolution_layer (ConvolutionL (None, 145, 512)     25088       forward[0][0]                    
-#                                                                  reverse[0][0]                    
-# __________________________________________________________________________________________________
-# concatenate (Concatenate)       (None, 290, 512)     0           convolution_layer[0][0]          
-#                                                                  convolution_layer[1][0]          
-# __________________________________________________________________________________________________
-# max_pooling1d (MaxPooling1D)    (None, 1, 512)       0           concatenate[0][0]                
-# __________________________________________________________________________________________________
-# flatten (Flatten)               (None, 512)          0           max_pooling1d[0][0]              
-# __________________________________________________________________________________________________
-# dense (Dense)                   (None, 32)           16416       flatten[0][0]                    
-# __________________________________________________________________________________________________
-# dense_1 (Dense)                 (None, 2)            66          dense[0][0]                      
-# ==================================================================================================
-# Total params: 41,570
-# Trainable params: 41,570
-# Non-trainable params: 0
-# __________________________________________________________________________________________________
-
 import torch
 from torch import Tensor
 import torch.nn as nn
@@ -32,9 +5,7 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from pytorch_lightning.metrics import Accuracy
 
-
 PRINT = False
-
 
 class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
@@ -42,7 +13,7 @@ class SimpleModel(pl.LightningModule):
         self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
-        self.linear1 = nn.Linear(in_features=5120, out_features=32)
+        self.linear1 = nn.Linear(in_features=512, out_features=32)
         self.linear2 = nn.Linear(in_features=32, out_features=2)
         self.softmax = nn.Softmax(dim=1)
 

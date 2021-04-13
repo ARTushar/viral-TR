@@ -1,1 +1,1 @@
-tensorboard 
+python3 train.py --max_epochs 20

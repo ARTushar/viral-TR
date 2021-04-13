@@ -46,16 +46,16 @@ class CustomSequenceDataset(Dataset):
 
 class SequenceDataModule(pl.LightningDataModule):
 
-    def __init__(self, directory, file_in, file_out, seed=4, batch_size=32):
+    def __init__(self, directory, file_in, file_out, batch_size=32):
         super().__init__()
         self.directory = directory
         self.file_in = file_in
         self.file_out = file_out
         self.batch_size = batch_size
-        self.seed = seed
+        # self.seed = seed # redundant
 
     def prepare_data(self):
-        splitter(self.directory, self.file_in, self.file_out, self.seed)
+        splitter(self.directory, self.file_in, self.file_out)
 
     def setup(self, stage: Optional[str] = None):
         train_file_in = os.path.join(self.directory, 'train', self.file_in)
