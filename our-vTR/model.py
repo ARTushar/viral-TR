@@ -1,4 +1,4 @@
-from torchmetrics import Precision, Recall, Accuracy, AUROC, F1, MetricCollection
+from torchmetrics import Precision, Recall, Accuracy, F1, MetricCollection
 import torch
 from torch import Tensor
 import torch.nn as nn

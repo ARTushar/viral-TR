@@ -81,8 +81,80 @@ class ConvolutionLayer(Conv1D):
             beta = 1/alpha
             bkg = tf.constant([0.25, 0.25, 0.25, 0.25])
             bkg_tf = tf.cast(bkg, tf.float32)
-            filt_list = tf.map_fn(lambda x: tf.math.scalar_mul(beta, tf.subtract(tf.subtract(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1)), tf.expand_dims(tf.math.log(tf.math.reduce_sum(
-                tf.math.exp(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1))), axis=1)), axis=1)), tf.math.log(tf.reshape(tf.tile(bkg_tf, [tf.shape(x)[0]]), [tf.shape(x)[0], tf.shape(bkg_tf)[0]])))), x_tf)
+            # filt_list = tf.map_fn(lambda x: tf.math.scalar_mul(beta, tf.subtract(tf.subtract(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1)), tf.expand_dims(tf.math.log(tf.math.reduce_sum(
+            #     tf.math.exp(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1))), axis=1)), axis=1)), tf.math.log(tf.reshape(tf.tile(bkg_tf, [tf.shape(x)[0]]), [tf.shape(x)[0], tf.shape(bkg_tf)[0]])))), x_tf)
+
+            # def dummy(x):
+            #     return
+            #     tf.math.scalar_mul(
+            #         beta,
+            #         tf.subtract(
+            #             tf.subtract(
+            #                 tf.subtract(
+            #                     tf.math.scalar_mul(alpha, x),
+            #                     tf.expand_dims(
+            #                         tf.math.reduce_max(
+            #                             tf.math.scalar_mul(alpha, x),
+            #                             axis=1
+            #                         ),
+            #                         axis=1
+            #                     )
+            #                 ),
+            #                 tf.expand_dims(
+            #                     tf.math.log(
+            #                         tf.math.reduce_sum(
+            #                             tf.math.exp(
+            #                                 tf.subtract(
+            #                                     tf.math.scalar_mul(alpha, x),
+            #                                     tf.expand_dims(
+            #                                         tf.math.reduce_max(
+            #                                             tf.math.scalar_mul(alpha, x),
+            #                                             axis=1
+            #                                         ),
+            #                                         axis=1
+            #                                     )
+            #                                 )
+            #                             ),
+            #                             axis=1
+            #                         )
+            #                     ),
+            #                     axis=1
+            #                 )
+            #             ),
+            #             tf.math.log(
+            #                 tf.reshape(
+            #                     tf.tile(
+            #                         bkg_tf,
+            #                         [ tf.shape(x)[0] ]
+            #                     ),
+            #                     [ tf.shape(x)[0], tf.shape(bkg_tf)[0] ]
+            #                 )
+            #             )
+            #         )
+            #     )
+
+
+            def calculate(x):
+                alpha_x = tf.math.scalar_mul(alpha, x)
+                ax_reduced = tf.math.reduce_max(alpha_x, axis=1)
+                axr_expanded = tf.expand_dims(ax_reduced, axis=1)
+                ax_sub_axre = tf.subtract(alpha_x, axr_expanded)
+                softmaxed = tf.math.reduce_sum(tf.math.exp(ax_sub_axre), axis=1)
+                sm_log_expanded = tf.expand_dims(tf.math.log(softmaxed), axis=1)
+                axsaxre_sub_smle = tf.subtract(ax_sub_axre, sm_log_expanded)
+
+                bkg_streched = tf.tile(bkg_tf, [ tf.shape(x)[0] ])
+                bkg_stacked = tf.reshape(bkg_streched, [ tf.shape(x)[0], tf.shape(bkg_tf)[0] ])
+                bkgs_log = tf.math.log(bkg_stacked)
+
+                return tf.math.scalar_mul(beta, tf.subtract(axsaxre_sub_smle, bkgs_log))
+
+
+            filt_list = tf.map_fn(calculate, x_tf)
+
+
+
+
             #print("type of output from map_fn is", type(filt_list)) ##type of output from map_fn is <class 'tensorflow.python.framework.ops.Tensor'>   shape of output from map_fn is (10, 12, 4)
             #print("shape of output from map_fn is", filt_list.shape)
             #transf = tf.reshape(filt_list, [12, 4, self.filters]) ##12, 4, 512
