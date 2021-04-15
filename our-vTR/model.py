@@ -12,8 +12,8 @@ PRINT = False
 class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
-        self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        # self.conv1d = CustomConv1d(kernel_size=12, in_channels=4, out_channels=512)
+        # self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
+        self.conv1d = CustomConv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=512, out_features=32)
