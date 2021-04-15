@@ -75,7 +75,9 @@ class ConvolutionLayer(Conv1D):
         if self.run_value > 2:
 
             x_tf = self.kernel  # x_tf after reshaping is a tensor and not a weight variable :(
+            print("x_tf shape is: ", x_tf.shape)
             x_tf = tf.transpose(x_tf, [2, 0, 1])
+            print("after x_tf shape is: ", x_tf.shape)
 
             alpha = 1000
             beta = 1/alpha

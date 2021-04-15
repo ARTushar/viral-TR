@@ -1,0 +1,1 @@
+python3 train.py sequences.fa wt_readout.dat parameter1.txt
