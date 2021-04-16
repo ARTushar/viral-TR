@@ -98,7 +98,7 @@ class SimpleModel(pl.LightningModule):
         bce_loss = F.binary_cross_entropy(logits, labels)
         all_linear1_params = torch.cat(
             [x.view(-1) for x in self.linear1.parameters()])
-        reg_loss = 0.0001 * torch.norm(all_linear1_params, 1)
+        reg_loss = 0.001 * torch.norm(all_linear1_params, 1)
         return bce_loss + reg_loss
 
 
