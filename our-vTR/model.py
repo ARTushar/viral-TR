@@ -24,8 +24,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = MetricCollection([
             Accuracy(),
-            Precision(num_classes=2), 
-            Recall(num_classes=2), 
+            # Precision(num_classes=2), 
+            # Recall(num_classes=2), 
             # AUROC(num_classes=2), 
         ])
         self.train_metrics = metrics.clone()
@@ -64,8 +64,7 @@ class SimpleModel(pl.LightningModule):
         self.train_metrics(logits, y.type(torch.int))
 
         self.log('train_loss', loss)
-        self.log_dict(self.train_metrics, on_step=True,
-                      on_epoch=False, prog_bar=False,)
+        self.log_dict(self.train_metrics, prog_bar=False)
 
         return loss
 
@@ -76,9 +75,8 @@ class SimpleModel(pl.LightningModule):
 
         self.valid_metrics(logits, y.type(torch.int))
 
-        self.log('val_loss', loss, on_epoch=True)
-        self.log_dict(self.valid_metrics, on_step=True,
-                      on_epoch=True, prog_bar=False,)
+        self.log('val_loss', loss)
+        self.log_dict(self.valid_metrics, prog_bar=True)
 
     def test_step(self, test_batch, batch_idx):
         X_fw, X_rv, y = test_batch
@@ -100,13 +98,11 @@ class SimpleModel(pl.LightningModule):
         bce_loss = F.binary_cross_entropy(logits, labels)
         all_linear1_params = torch.cat(
             [x.view(-1) for x in self.linear1.parameters()])
-        reg_loss = 0.0035 * torch.norm(all_linear1_params, 1)
+        reg_loss = 0.0001 * torch.norm(all_linear1_params, 1)
         return bce_loss + reg_loss
 
 
 if __name__ == '__main__':
     PRINT = True
     model = SimpleModel()  # to(device)
-    ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
-    ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
     ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))

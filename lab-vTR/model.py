@@ -42,7 +42,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val
 from sklearn.utils import shuffle
 
 #Reproducibility
-seed = random.randint(1, 1000)
+# seed = random.randint(1, 1000)
+seed = 70
 
 np.random.seed(seed)
 tf.random.set_seed(seed)
@@ -318,7 +319,7 @@ class nn_model:
         rc_fasta = dict["reverse"]
         readout = dict["readout"]
 
-        seed = random.randint(1, 1000)
+        # seed = random.randint(1, 1000)
 
         x1_train, x1_test, y1_train, y1_test = train_test_split(
             fw_fasta, readout, test_size=0.1, random_state=seed)
@@ -451,7 +452,7 @@ class nn_model:
         rc_fasta = dict["reverse"]
         readout = dict["readout"]
 
-        seed = random.randint(1, 1000)
+        # seed = random.randint(1, 1000)
 
         x1_train, x1_test, y1_train, y1_test = train_test_split(
             fw_fasta, readout, test_size=0.1, random_state=seed)
@@ -563,7 +564,7 @@ class nn_model:
             rc_fasta = dict["reverse"]
             readout = dict["readout"]
 
-            seed = random.randint(1, 1000)
+            # seed = random.randint(1, 1000)
 
             x1_train, x1_test, y1_train, y1_test = train_test_split(
                 fw_fasta, readout, test_size=0.1, random_state=seed)
@@ -619,7 +620,7 @@ class nn_model:
         np.set_printoptions(threshold=sys.maxsize)
 
         # seed to reproduce results
-        seed = random.randint(1, 1000)
+        # seed = random.randint(1, 1000)
 
         fw_fasta = dict["forward"]
         rc_fasta = dict["reverse"]

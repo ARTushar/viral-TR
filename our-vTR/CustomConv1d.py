@@ -33,17 +33,17 @@ class CustomConv1d(nn.Conv1d):
 
     def forward(self, input: Tensor) -> Tensor:
         distr = [0.25, 0.25, 0.25, 0.25]
-        t_distr = torch.tensor([distr]).T.type_as(input)
+        t_distr = torch.tensor([distr]).T
         distr_log = torch.log(t_distr.repeat(1, 12))
 
         use_weight = self.weight
         if self.run_value > 2:
-            use_weight = torch.stack([CustomConv1d.calculate(w, distr_log) for w in self.weight])
+            use_weight = torch.stack([CustomConv1d.calculate(w, distr_log) for w in self.weight.type_as(distr_log)])
 
         self.run_value += 1
-        return self._conv_forward(input, use_weight, self.bias)
+        return self._conv_forward(input, use_weight.type_as(input), self.bias)
 
-    def calculate(x, distr_log):
+    def calculate(x: Tensor, distr_log: Tensor) -> Tensor:
         alpha = 1000
         alpha_x = alpha * x
         ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
