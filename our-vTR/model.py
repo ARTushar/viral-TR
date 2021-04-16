@@ -1,10 +1,11 @@
-from torchmetrics import Precision, Recall, Accuracy, F1, MetricCollection
+import pytorch_lightning as pl
 import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
+from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall
 from torchmetrics.functional import auroc
+
 from CustomConv1d import CustomConv1d
 
 PRINT = False
@@ -24,9 +25,9 @@ class SimpleModel(pl.LightningModule):
 
         metrics = MetricCollection([
             Accuracy(),
-            # Precision(num_classes=2), 
-            # Recall(num_classes=2), 
-            # AUROC(num_classes=2), 
+            # Precision(num_classes=2),
+            # Recall(num_classes=2),
+            # AUROC(num_classes=2),
         ])
         self.train_metrics = metrics.clone()
         self.valid_metrics = metrics.clone()
@@ -53,41 +54,41 @@ class SimpleModel(pl.LightningModule):
             print(line2.shape, '-> linear 2')
             print(probs.shape, '-> softmax')
         return probs
-    
-    def training_step(self, train_batch, batch_idx):
+
+    def training_step(self, train_batch: Tensor, batch_idx: int) -> Tensor:
         # define the training loop
 
         X_fw, X_rv, y = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
 
-        self.train_metrics(logits, y.type(torch.int))
+        metrics = self.train_metrics(logits, y.type(torch.int))
 
         self.log('train_loss', loss)
-        self.log_dict(self.train_metrics, prog_bar=False)
+        self.log_dict(metrics, prog_bar=False)
 
         return loss
 
-    def validation_step(self, val_batch, batch_idx):
+    def validation_step(self, val_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
 
-        self.valid_metrics(logits, y.type(torch.int))
+        metrics = self.valid_metrics(logits, y.type(torch.int))
 
         self.log('val_loss', loss)
-        self.log_dict(self.valid_metrics, prog_bar=True)
+        self.log_dict(metrics, prog_bar=True)
 
-    def test_step(self, test_batch, batch_idx):
+    def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = test_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        
-        self.test_metrics(logits, y.type(torch.int))
+
+        metrics = self.test_metrics(logits, y.type(torch.int))
 
         self.log('test_loss', loss)
         self.log('test_auroc', auroc(logits, y.type(torch.int), num_classes=2))
-        self.log_dict(self.test_metrics)
+        self.log_dict(metrics)
 
 
     def configure_optimizers(self):

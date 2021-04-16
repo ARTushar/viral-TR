@@ -1,7 +1,16 @@
 import torch
 from torch import nn
 from torch import Tensor
-from pytorch_lightning import LightningModule
+
+
+def calculate(x: Tensor, distr_log: Tensor) -> Tensor:
+    alpha = 1000
+    alpha_x = alpha * x
+    ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
+    ax_sub_axmx = alpha_x - ax_max
+    exp_sum = torch.sum(torch.exp(ax_sub_axmx), dim=0, keepdim=True)
+    es_log = torch.log(exp_sum)
+    return (ax_sub_axmx - es_log - distr_log) / alpha
 
 
 class CustomConv1d(nn.Conv1d):
@@ -38,16 +47,8 @@ class CustomConv1d(nn.Conv1d):
 
         use_weight = self.weight
         if self.run_value > 2:
-            use_weight = torch.stack([CustomConv1d.calculate(w, distr_log) for w in self.weight.type_as(distr_log)])
+            use_weight = torch.stack([calculate(w, distr_log) for w in self.weight.type_as(distr_log)])
 
         self.run_value += 1
         return self._conv_forward(input, use_weight.type_as(input), self.bias)
 
-    def calculate(x: Tensor, distr_log: Tensor) -> Tensor:
-        alpha = 1000
-        alpha_x = alpha * x
-        ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
-        ax_sub_axmx = alpha_x - ax_max
-        exp_sum = torch.sum(torch.exp(ax_sub_axmx), dim=0, keepdim=True)
-        es_log = torch.log(exp_sum)
-        return (ax_sub_axmx - es_log - distr_log) / alpha

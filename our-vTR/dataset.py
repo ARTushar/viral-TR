@@ -1,14 +1,16 @@
 import os
+from typing import Callable, Optional, Tuple
+
 import pytorch_lightning as pl
 import torch
+from torch import Tensor
 from torch.utils.data import Dataset
-from typing import Callable, Optional
 from torch.utils.data.dataloader import DataLoader
+
 from utils.splitter import splitter
-from utils.transforms import transform_all_sequences, transform_all_labels 
+from utils.transforms import transform_all_labels, transform_all_sequences
 
-
-WORKERS = 2
+WORKERS = 4
 
 
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)
@@ -35,7 +37,7 @@ class CustomSequenceDataset(Dataset):
     def __len__(self) -> int:
         return len(self.labels)
     
-    def __getitem__(self, index) -> dict:
+    def __getitem__(self, index) -> Tuple[Tensor, ...]:
 
         fw = self.forward_sequences[index]
         rv = self.reverse_sequences[index]

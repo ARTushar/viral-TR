@@ -1,11 +1,12 @@
 from argparse import ArgumentParser
 import time
 
-from dataset import SequenceDataModule
-from model import SimpleModel
 import pytorch_lightning as pl
 
-SEED = 70 
+from dataset import SequenceDataModule
+from model import SimpleModel
+
+SEED = 70
 pl.seed_everything(SEED)
 
 def main(args):
