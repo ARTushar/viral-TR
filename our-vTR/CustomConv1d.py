@@ -41,21 +41,19 @@ class CustomConv1d(nn.Conv1d):
     def forward(self, input: Tensor) -> Tensor:
         use_weight = self.weight
         if self.run_value > 2:
-            U = 'cpu'
-            wu = self.weight.type_as(self.distr_log) if U == 'cpu' else self.weight
-            dl = self.distr_log.type_as(self.weight) if U == 'gpu' else self.distr_log
-            use_weight = torch.stack([self.calculate(w, dl) for w in wu])
+            w_to_cpu = self.weight.type_as(self.distr_log)
+            use_weight = torch.stack([self.calculate(w) for w in w_to_cpu])
 
         self.run_value += 1
         return self._conv_forward(input, use_weight.type_as(input), self.bias)
 
-    def calculate(self, x: Tensor, distr_log: Tensor) -> Tensor:
+    def calculate(self, x: Tensor) -> Tensor:
         alpha_x = self.alpha * x
         ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
         ax_sub_axmx = alpha_x - ax_max
         exp_sum = torch.sum(torch.exp(ax_sub_axmx), dim=0, keepdim=True)
         es_log = torch.log(exp_sum)
-        return self.beta * (ax_sub_axmx - es_log - distr_log)
+        return self.beta * (ax_sub_axmx - es_log - self.distr_log)
 
 
 

@@ -1,1 +1,1 @@
-python3 train.py --max_epochs 5
+python3 train.py --max_epochs 1

@@ -84,8 +84,8 @@ class ConvolutionLayer(Conv1D):
             beta = 1/alpha
             bkg = tf.constant([0.25, 0.25, 0.25, 0.25])
             bkg_tf = tf.cast(bkg, tf.float32)
-            # filt_list = tf.map_fn(lambda x: tf.math.scalar_mul(beta, tf.subtract(tf.subtract(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1)), tf.expand_dims(tf.math.log(tf.math.reduce_sum(
-            #     tf.math.exp(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1))), axis=1)), axis=1)), tf.math.log(tf.reshape(tf.tile(bkg_tf, [tf.shape(x)[0]]), [tf.shape(x)[0], tf.shape(bkg_tf)[0]])))), x_tf)
+            filt_list = tf.map_fn(lambda x: tf.math.scalar_mul(beta, tf.subtract(tf.subtract(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1)), tf.expand_dims(tf.math.log(tf.math.reduce_sum(
+                tf.math.exp(tf.subtract(tf.math.scalar_mul(alpha, x), tf.expand_dims(tf.math.reduce_max(tf.math.scalar_mul(alpha, x), axis=1), axis=1))), axis=1)), axis=1)), tf.math.log(tf.reshape(tf.tile(bkg_tf, [tf.shape(x)[0]]), [tf.shape(x)[0], tf.shape(bkg_tf)[0]])))), x_tf)
 
             # def dummy(x):
             #     return

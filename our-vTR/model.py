@@ -71,8 +71,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.train_metrics(logits, y.type(torch.int))
 
-        self.log('train_loss', loss)
-        self.log_dict(metrics, prog_bar=False)
+        self.log('train_loss', loss, prog_bar=True)
+        self.log_dict(metrics)
 
         return loss
 
@@ -83,8 +83,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.valid_metrics(logits, y.type(torch.int))
 
-        self.log('val_loss', loss)
-        self.log_dict(metrics, prog_bar=True)
+        self.log('val_loss', loss, prog_bar=True)
+        self.log_dict(metrics)
 
     def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = test_batch
@@ -104,9 +104,7 @@ class SimpleModel(pl.LightningModule):
 
     def cross_entropy_loss(self, logits, labels):
         bce_loss = F.binary_cross_entropy(logits, labels)
-        all_linear1_params = torch.cat(
-            [x.view(-1) for x in self.linear1.parameters()])
-        reg_loss = 0.001 * torch.norm(all_linear1_params, 1)
+        reg_loss = 0.001 * sum(x.abs().sum() for x in self.linear1.parameters())
         return bce_loss + reg_loss
 
 
