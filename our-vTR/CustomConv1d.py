@@ -1,16 +1,7 @@
+from typing import Tuple
+
 import torch
-from torch import nn
-from torch import Tensor
-
-
-def calculate(x: Tensor, distr_log: Tensor) -> Tensor:
-    alpha = 1000
-    alpha_x = alpha * x
-    ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
-    ax_sub_axmx = alpha_x - ax_max
-    exp_sum = torch.sum(torch.exp(ax_sub_axmx), dim=0, keepdim=True)
-    es_log = torch.log(exp_sum)
-    return (ax_sub_axmx - es_log - distr_log) / alpha
+from torch import Tensor, nn
 
 
 class CustomConv1d(nn.Conv1d):
@@ -18,10 +9,13 @@ class CustomConv1d(nn.Conv1d):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size,
-        stride = 1,
-        padding = 0,
-        dilation = 1,
+        kernel_size: int,
+        alpha: float,
+        beta: float,
+        distribution: Tuple[float, float, float, float],
+        stride: int = 1,
+        padding: int = 0,
+        dilation: int = 1,
         groups: int = 1,
         bias: bool = True,
         padding_mode: str = 'zeros',
@@ -37,18 +31,31 @@ class CustomConv1d(nn.Conv1d):
             bias,
             padding_mode
         )
+        self.alpha = alpha
+        self.beta = beta
         self.run_value = 1
-        # self.register_buffer("t_distr", torch.tensor([distr]).T)
+        t_distr = torch.tensor([distribution]).T
+        self.distr_log = torch.log(t_distr.repeat(1, self.kernel_size[0]))
+
 
     def forward(self, input: Tensor) -> Tensor:
-        distr = [0.25, 0.25, 0.25, 0.25]
-        t_distr = torch.tensor([distr]).T
-        distr_log = torch.log(t_distr.repeat(1, 12))
-
         use_weight = self.weight
         if self.run_value > 2:
-            use_weight = torch.stack([calculate(w, distr_log) for w in self.weight.type_as(distr_log)])
+            U = 'cpu'
+            wu = self.weight.type_as(self.distr_log) if U == 'cpu' else self.weight
+            dl = self.distr_log.type_as(self.weight) if U == 'gpu' else self.distr_log
+            use_weight = torch.stack([self.calculate(w, dl) for w in wu])
 
         self.run_value += 1
         return self._conv_forward(input, use_weight.type_as(input), self.bias)
+
+    def calculate(self, x: Tensor, distr_log: Tensor) -> Tensor:
+        alpha_x = self.alpha * x
+        ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
+        ax_sub_axmx = alpha_x - ax_max
+        exp_sum = torch.sum(torch.exp(ax_sub_axmx), dim=0, keepdim=True)
+        es_log = torch.log(exp_sum)
+        return self.beta * (ax_sub_axmx - es_log - distr_log)
+
+
 

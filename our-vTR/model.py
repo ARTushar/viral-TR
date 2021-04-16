@@ -14,7 +14,14 @@ class SimpleModel(pl.LightningModule):
     def __init__(self) -> None:
         super(SimpleModel, self).__init__()
         # self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
-        self.conv1d = CustomConv1d(kernel_size=12, in_channels=4, out_channels=512)
+        self.conv1d = CustomConv1d(
+            kernel_size=12,
+            in_channels=4,
+            out_channels=512,
+            alpha=1000,
+            beta=1/1000,
+            distribution=(0.25, 0.25, 0.25, 0.25)
+        )
         self.max_pool1d = nn.MaxPool1d(kernel_size=290)
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=512, out_features=32)
@@ -105,5 +112,5 @@ class SimpleModel(pl.LightningModule):
 
 if __name__ == '__main__':
     PRINT = True
-    model = SimpleModel()  # to(device)
+    model = SimpleModel()
     ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
