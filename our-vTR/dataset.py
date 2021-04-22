@@ -4,6 +4,7 @@ from typing import Callable, Optional, Tuple
 import pytorch_lightning as pl
 import torch
 from torch import Tensor
+from torch.utils import data
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import DataLoader
 
@@ -77,6 +78,9 @@ class SequenceDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=WORKERS)
 
+    def sequence_length(self):
+        return self.train_data[0][0].shape[1]
+
 
 def main():
     data_module = SequenceDataModule('dataset', 'sequences.fa', 'wt_readout.dat', batch_size=64)
@@ -87,6 +91,7 @@ def main():
         print(b)
         print(c)
         break
+    print(data_module.sequence_length())
 
 
 if __name__ == "__main__":

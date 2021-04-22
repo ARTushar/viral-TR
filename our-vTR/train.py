@@ -1,6 +1,7 @@
-from typing import Dict
+import json
 import time
 from argparse import ArgumentParser, Namespace
+from typing import Dict
 
 import pytorch_lightning as pl
 
@@ -10,22 +11,8 @@ from model import SimpleModel
 SEED = 70
 pl.seed_everything(SEED)
 
-params = {
-    'kernel_size': 12,
-    'alpha': 1e3,
-    'beta': 1e-3,
-    'l1_lambda': 1e-3,
-    'l2_lambda': 0,
-    'batch_size': 64,
-    'epochs': 20
-}
 
-def log_result() -> None:
-    with open('param_log.txt', 'w') as f:
-        f.write(str(params) + ' = 1')
-
-
-def main(args: Namespace) -> None:
+def main(args: Namespace, params: Dict) -> None:
     data_module = SequenceDataModule(
         'dataset',
         'sequences.fa',
@@ -37,29 +24,32 @@ def main(args: Namespace) -> None:
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
 
     model = SimpleModel(
-        seq_length=156,
+        convolution_type=params['convolution_type'],
         kernel_size=params['kernel_size'],
+        kernel_count=params['kernel_count'],
         alpha=params['alpha'],
         beta=params['beta'],
-        distribution=(0.3, 0.2, 0.2, 0.3),
+        distribution=params['distribution'],
+        linear_layer_shapes=params['linear_layer_shapes'],
         l1_lambda=params['l1_lambda'],
         l2_lambda=params['l2_lambda'],
-        lr=1e-3
+        lr=params['learning_rate'],
     )
 
     start_time = time.time()
     trainer.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    log_result()
-
     # trainer.test(model, datamodule=data_module)
 
 
 if __name__ == "__main__":
+    params = json.load(open('parameters.json'))
+
     parser = ArgumentParser()
     parser = pl.Trainer.add_argparse_args(parser)
     args = parser.parse_args()
     args.__setattr__('max_epochs', params['epochs'])
 
-    main(args)
+    main(args, params)
+

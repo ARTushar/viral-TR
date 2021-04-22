@@ -12,7 +12,7 @@ class CustomConv1d(nn.Conv1d):
         kernel_size: int,
         alpha: float,
         beta: float,
-        distribution: Tuple[float, float, float, float],
+        distribution: Tuple[float, ...],
         stride: int = 1,
         padding: int = 0,
         dilation: int = 1,
