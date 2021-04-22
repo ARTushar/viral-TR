@@ -49,6 +49,7 @@ class SimpleModel(pl.LightningModule):
 
         metrics = MetricCollection([
             Accuracy(),
+            F1()
             # Precision(num_classes=2),
             # Recall(num_classes=2),
             # AUROC(num_classes=2),
@@ -89,7 +90,7 @@ class SimpleModel(pl.LightningModule):
         metrics = self.train_metrics(logits, y.type(torch.int))
 
         self.log('train_loss', loss, prog_bar=True)
-        self.log_dict(metrics)
+        self.log_dict(metrics, prog_bar=True)
 
         return loss
 
@@ -101,7 +102,7 @@ class SimpleModel(pl.LightningModule):
         metrics = self.valid_metrics(logits, y.type(torch.int))
 
         self.log('val_loss', loss, prog_bar=True)
-        self.log_dict(metrics)
+        self.log_dict(metrics, prog_bar=True)
 
     def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = test_batch
@@ -116,7 +117,9 @@ class SimpleModel(pl.LightningModule):
 
 
     def configure_optimizers(self) -> Optimizer:
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.l2_lambda)
+        parameters = self.parameters()
+        trainable_parameters = filter(lambda p: p.requires_grad, parameters)
+        optimizer = torch.optim.Adam(trainable_parameters, lr=self.lr, weight_decay=self.l2_lambda)
         return optimizer
 
     def cross_entropy_loss(self, logits: Tensor, labels: Tensor) -> Tensor:

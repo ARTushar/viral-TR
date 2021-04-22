@@ -7,7 +7,7 @@ from torch import Tensor
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import DataLoader
 
-from utils.splitter import splitter
+from utils.splitter import read_samples, splitter
 from utils.transforms import transform_all_labels, transform_all_sequences
 
 WORKERS = 4
@@ -18,20 +18,14 @@ WORKERS = 4
 class CustomSequenceDataset(Dataset):
     def __init__(self, file_in: str, file_out: str, transform: Callable=None, target_transform: Callable=None) -> None:
         super().__init__()
-        sequences, labels = [], []
-         
-        with open(file_in, 'r') as ifile:
-            sequences = [line.strip() for line in ifile]
-
-        with open(file_out, 'r') as ofile:
-            labels = [line.strip() for line in ofile]
+        sequences, labels = read_samples(file_in, file_out)
 
         self.forward_sequences, self.reverse_sequences = transform(sequences)
         self.labels = target_transform(labels)
 
-        self.forward_sequences = self.forward_sequences[0:128]
-        self.reverse_sequences = self.reverse_sequences[0:128]
-        self.labels = self.labels[0:128]
+        # self.forward_sequences = self.forward_sequences[0:128]
+        # self.reverse_sequences = self.reverse_sequences[0:128]
+        # self.labels = self.labels[0:128]
 
 
     def __len__(self) -> int:

@@ -59,3 +59,16 @@ def splitter(directory:str, raw_in:str, raw_out:str) -> None:
 
     for data_type, samples in files:
         write_samples(directory, data_type, raw_in, raw_out, samples)
+
+
+def read_samples(sequence_file, label_file):
+    sequences = []
+    labels = []
+
+    with open(sequence_file, 'r') as ifile:
+        sequences = [line.strip() for line in ifile.readlines()]
+    
+    with open(label_file, 'r') as ofile:
+        labels = [line.strip() for line in ofile.readlines()]
+
+    return sequences, labels

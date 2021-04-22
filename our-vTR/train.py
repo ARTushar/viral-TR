@@ -17,7 +17,7 @@ params = {
     'l1_lambda': 1e-3,
     'l2_lambda': 0,
     'batch_size': 64,
-    'epochs': 1
+    'epochs': 20
 }
 
 def log_result() -> None:
@@ -33,8 +33,8 @@ def main(args: Namespace) -> None:
         batch_size=params['batch_size']
     )
 
-    # trainer = pl.Trainer.from_argparse_args(args, deterministic=True, gpus=-1, auto_select_gpus=True)
-    trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
+    trainer = pl.Trainer.from_argparse_args(args, deterministic=True, gpus=-1, auto_select_gpus=True)
+    # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
 
     model = SimpleModel(
         seq_length=156,
