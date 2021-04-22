@@ -20,3 +20,6 @@ pyrightconfig.json
 !*/dataset/raw
 */dummyset/*
 !*/dummyset/generatory.py
+
+*/processed_files/*
+!*/processed_files/tobed.sh
