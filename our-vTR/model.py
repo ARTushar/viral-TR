@@ -1,8 +1,11 @@
+from typing import Tuple
+
 import pytorch_lightning as pl
 import torch
 from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim.optimizer import Optimizer
 from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall
 from torchmetrics.functional import auroc
 
@@ -11,18 +14,32 @@ from CustomConv1d import CustomConv1d
 PRINT = False
 
 class SimpleModel(pl.LightningModule):
-    def __init__(self) -> None:
-        super(SimpleModel, self).__init__()
+    def __init__(
+        self,
+        seq_length: int,
+        kernel_size: int,
+        alpha: float,
+        beta: float,
+        distribution: Tuple[float, float, float, float],
+        l1_lambda: float,
+        l2_lambda: float,
+        lr: float,
+    ) -> None:
+        super().__init__()
+        self.l1_lambda = l1_lambda
+        self.l2_lambda = l2_lambda
+        self.lr = lr
+
         # self.conv1d = nn.Conv1d(kernel_size=12, in_channels=4, out_channels=512)
         self.conv1d = CustomConv1d(
-            kernel_size=12,
+            kernel_size=kernel_size,
             in_channels=4,
             out_channels=512,
-            alpha=1000,
-            beta=1/1000,
-            distribution=(0.25, 0.25, 0.25, 0.25)
+            alpha=alpha,
+            beta=beta,
+            distribution=distribution
         )
-        self.max_pool1d = nn.MaxPool1d(kernel_size=290)
+        self.max_pool1d = nn.MaxPool1d(kernel_size=2*(seq_length-kernel_size+1))
         self.flatten = nn.Flatten()
         self.linear1 = nn.Linear(in_features=512, out_features=32)
         self.linear2 = nn.Linear(in_features=32, out_features=2)
@@ -98,17 +115,27 @@ class SimpleModel(pl.LightningModule):
         self.log_dict(metrics)
 
 
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+    def configure_optimizers(self) -> Optimizer:
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.l2_lambda)
         return optimizer
 
-    def cross_entropy_loss(self, logits, labels):
+    def cross_entropy_loss(self, logits: Tensor, labels: Tensor) -> Tensor:
         bce_loss = F.binary_cross_entropy(logits, labels)
-        reg_loss = 0.001 * sum(x.abs().sum() for x in self.linear1.parameters())
+        reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linear1.parameters())
         return bce_loss + reg_loss
 
 
 if __name__ == '__main__':
     PRINT = True
-    model = SimpleModel()
-    ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
+    seq_length = 156
+    model = SimpleModel(
+        seq_length=seq_length,
+        kernel_size=12,
+        alpha=1000,
+        beta=1/1000,
+        distribution=(0.3, 0.2, 0.2, 0.3),
+        l1_lambda=1e-3,
+        l2_lambda=0,
+        lr=1e-3
+    )
+    ret = model(torch.ones(64, 4, seq_length), torch.ones(64, 4, seq_length))

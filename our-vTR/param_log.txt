@@ -1,0 +1,1 @@
+{'kernel_size': 12, 'alpha': 1000.0, 'beta': 0.001, 'l1_lambda': 0.001, 'l2_lambda': 0, 'batch_size': 64, 'epochs': 1} = 1
