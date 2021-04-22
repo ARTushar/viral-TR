@@ -67,16 +67,21 @@ class SimpleModel(pl.LightningModule):
 
         # TO DO: Check macro vs micro average
 
-        metrics = MetricCollection([
+        self.train_metrics = MetricCollection([
             Accuracy(),
             F1()
             # Precision(num_classes=2),
             # Recall(num_classes=2),
             # AUROC(num_classes=2),
-        ])
-        self.train_metrics = metrics.clone()
-        self.valid_metrics = metrics.clone()
-        self.test_metrics = metrics.clone()
+        ], prefix='train')
+        self.valid_metrics = MetricCollection([
+            Accuracy(),
+            F1()
+        ], prefix='valid')
+        self.test_metrics = MetricCollection([
+            Accuracy(),
+            F1()
+        ], prefix='test')
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
         seq_length = x_fw.shape[2]
@@ -84,7 +89,8 @@ class SimpleModel(pl.LightningModule):
         conv_fw = self.conv1d(x_fw)
         conv_rv = self.conv1d(x_rv)
         merged = torch.cat((conv_fw, conv_rv), dim=2)
-        max_pooled = F.max_pool1d(merged, kernel_size=2*(seq_length-self.conv1d.kernel_size[0]+1))
+        max_pooled = F.max_pool1d(
+            merged, kernel_size=2*(seq_length-self.conv1d.kernel_size[0]+1))
         flat = max_pooled.flatten(1, -1)
         line = self.linears(flat)
         probs = F.softmax(line, dim=1)
@@ -116,10 +122,8 @@ class SimpleModel(pl.LightningModule):
 
         return loss
 
-
     def on_train_end(self) -> None:
         self.logger.log_hyperparams
-
 
     def validation_step(self, val_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = val_batch
@@ -140,18 +144,19 @@ class SimpleModel(pl.LightningModule):
 
         self.log('test_loss', loss)
         self.log('test_auroc', auroc(logits, y.type(torch.int), num_classes=2))
-        self.log_dict(metrics)
-
+        self.log_dict(metrics, prefix="test")
 
     def configure_optimizers(self) -> Optimizer:
         parameters = self.parameters()
         trainable_parameters = filter(lambda p: p.requires_grad, parameters)
-        optimizer = torch.optim.Adam(trainable_parameters, lr=self.lr, weight_decay=self.l2_lambda)
+        optimizer = torch.optim.Adam(
+            trainable_parameters, lr=self.lr, weight_decay=self.l2_lambda)
         return optimizer
 
     def cross_entropy_loss(self, logits: Tensor, labels: Tensor) -> Tensor:
         bce_loss = F.binary_cross_entropy(logits, labels)
-        reg_loss = self.l1_lambda * sum(sum(x.abs().sum() for x in linear.parameters()) for linear in self.linears)
+        reg_loss = self.l1_lambda * sum(sum(x.abs().sum()
+                                        for x in linear.parameters()) for linear in self.linears)
         # reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linears[2].parameters())
         return bce_loss + reg_loss
 
