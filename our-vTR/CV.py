@@ -4,8 +4,7 @@ from pathlib import Path
 from typing import Union, Optional, Callable
 
 from sklearn.model_selection import KFold, StratifiedKFold
-from torch.utils.data import ConcatDataset, Subset, DataLoader, Dataset
-from torchmetrics import Accuracy
+from torch.utils.data import ConcatDataset, Subset, DataLoader
 
 from pytorch_lightning import Trainer, LightningModule
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -14,7 +13,6 @@ from dataset import CustomSequenceDataset
 from utils.transforms import transform_all_sequences, transform_all_labels
 
 from model import SimpleModel
-from utils.splitter import read_samples
 
 
 class DataCV:
@@ -80,7 +78,7 @@ class DataCV:
 
     def get_data_labels(self):
         dataset = self.get_dataset()
-        return [int(sample[1]) for sample in dataset]
+        return [int(sample[2]) for sample in dataset]
 
 
 class CV:
