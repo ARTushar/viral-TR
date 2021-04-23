@@ -7,6 +7,7 @@ from torch import Tensor
 from torch.utils import data
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import DataLoader
+from torch.utils.data.dataset import ConcatDataset
 
 from utils.splitter import read_samples, splitter
 from utils.transforms import transform_all_labels, transform_all_sequences
@@ -63,27 +64,41 @@ class SequenceDataModule(pl.LightningDataModule):
         test_file_out = os.path.join(self.directory, 'test', self.file_out)
 
         if stage == 'fit':
-            self.train_data = CustomSequenceDataset(train_file_in, train_file_out, transform_all_sequences, transform_all_labels)
-            self.val_data = CustomSequenceDataset(cv_file_in, cv_file_out, transform_all_sequences, transform_all_labels)
-        
+            self.train_data = CustomSequenceDataset(
+                train_file_in, train_file_out, transform_all_sequences, transform_all_labels)
+            self.val_data = CustomSequenceDataset(
+                cv_file_in, cv_file_out, transform_all_sequences, transform_all_labels)
+
         if stage == 'test':
-            self.test_data = CustomSequenceDataset(test_file_in, test_file_out, transform_all_sequences, transform_all_labels)
-    
+            self.test_data = CustomSequenceDataset(
+                test_file_in, test_file_out, transform_all_sequences, transform_all_labels)
+
+        # if stage == 'predict':
+        train_data = CustomSequenceDataset(
+                train_file_in, train_file_out, transform_all_sequences, transform_all_labels)
+        val_data = CustomSequenceDataset(
+                cv_file_in, cv_file_out, transform_all_sequences, transform_all_labels)
+        self.predict_data = ConcatDataset([train_data, val_data])
+
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True , num_workers=WORKERS)
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, num_workers=WORKERS)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data , batch_size=self.batch_size, num_workers=WORKERS)
-    
+        return DataLoader(self.val_data, batch_size=self.batch_size, num_workers=WORKERS)
+
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size, num_workers=WORKERS)
+
+    def predict_dataloader(self):
+        return DataLoader(self.predict_data, batch_size=self.batch_size, num_workers=WORKERS)
 
     def sequence_length(self):
         return self.train_data[0][0].shape[1]
 
 
 def main():
-    data_module = SequenceDataModule('dataset', 'sequences.fa', 'wt_readout.dat', batch_size=64)
+    data_module = SequenceDataModule(
+        'dataset', 'sequences.fa', 'wt_readout.dat', batch_size=64)
     data_module.setup(stage="fit")
     torch.set_printoptions(threshold=10)
     for a, b, c in data_module.train_dataloader():

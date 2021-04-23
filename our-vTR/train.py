@@ -1,14 +1,21 @@
 import json
+import os
 import time
 from argparse import ArgumentParser, Namespace
 from typing import Dict
 
 import pytorch_lightning as pl
+from torch.utils.data.dataloader import DataLoader
+from torch.utils.data.dataset import ConcatDataset
 
-from dataset import SequenceDataModule
+from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
+from utils.transforms import transform_all_labels, transform_all_sequences
 
 SEED = 70
+DATA_DIR = 'dataset'
+SEQUENCE_FILE = 'sequences.fa'
+LABEL_FILE = 'wt_readout.dat' 
 pl.seed_everything(SEED)
 
 
@@ -40,7 +47,9 @@ def main(args: Namespace, params: Dict) -> None:
     trainer.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    # trainer.test(model, datamodule=data_module)
+    trainer.predict(model, datamodule=data_module)
+
+    trainer.test(model, datamodule=data_module)
 
 
 if __name__ == "__main__":
@@ -52,4 +61,3 @@ if __name__ == "__main__":
     args.__setattr__('max_epochs', params['epochs'])
 
     main(args, params)
-

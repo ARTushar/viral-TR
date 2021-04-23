@@ -69,18 +69,18 @@ class SimpleModel(pl.LightningModule):
 
         self.train_metrics = MetricCollection([
             Accuracy(),
-            F1()
+            F1(num_classes=2)
             # Precision(num_classes=2),
             # Recall(num_classes=2),
             # AUROC(num_classes=2),
         ], prefix='train')
         self.valid_metrics = MetricCollection([
             Accuracy(),
-            F1()
+            F1(num_classes=2)
         ], prefix='valid')
         self.test_metrics = MetricCollection([
             Accuracy(),
-            F1()
+            F1(num_classes=2)
         ], prefix='test')
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
@@ -144,7 +144,7 @@ class SimpleModel(pl.LightningModule):
 
         self.log('test_loss', loss)
         self.log('test_auroc', auroc(logits, y.type(torch.int), num_classes=2))
-        self.log_dict(metrics, prefix="test")
+        self.log_dict(metrics)
 
     def configure_optimizers(self) -> Optimizer:
         parameters = self.parameters()
@@ -159,6 +159,8 @@ class SimpleModel(pl.LightningModule):
                                         for x in linear.parameters()) for linear in self.linears)
         # reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linears[2].parameters())
         return bce_loss + reg_loss
+    
+    
 
 
 def main():

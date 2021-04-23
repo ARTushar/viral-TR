@@ -1,4 +1,5 @@
 from copy import deepcopy
+import os
 from pathlib import Path
 from typing import Union, Optional, Callable
 
@@ -65,13 +66,10 @@ class DataCV:
 
     def get_dataset(self):
         """Creates and returns the complete dataset."""
-        train_sequence_path = Path(self.data_dir).joinpath(
-            'train',  self.sequence_file)
-        train_label_path = Path(self.data_dir).joinpath(
-            'train', self.label_file)
-        cv_sequence_path = Path(self.data_dir).joinpath(
-            'cv',  self.sequence_file)
-        cv_label_path = Path(self.data_dir).joinpath('cv', self.label_file)
+        train_sequence_path = os.path.join(self.data_dir, 'train',  self.sequence_file)
+        train_label_path = os.path.join(self.data_dir, 'train', self.label_file)
+        cv_sequence_path = os.path.join(self.data_dir, 'cv',  self.sequence_file)
+        cv_label_path = os.path.join(self.data_dir, 'cv', self.label_file)
 
         train_dataset = CustomSequenceDataset(
             train_sequence_path, train_label_path, transform_all_sequences, transform_all_labels)
