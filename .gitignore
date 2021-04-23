@@ -16,8 +16,8 @@ pyrightconfig.json
 
 # dataset
 
-*/dataset/*
-!*/dataset/raw
+*/dataset*/*
+!*/dataset*/raw
 */dummyset/*
 !*/dummyset/generatory.py
 
