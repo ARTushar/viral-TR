@@ -54,7 +54,7 @@ def train(params: Dict) -> None:
         params["data_dir"],
         params["sequence_file"],
         params["label_file"],
-        batch_size=params['batch_size'],
+        batch_size=512,
         for_test='train'
     ))[0]
     print('\n*** *** *** for val *** *** ***')
@@ -62,7 +62,7 @@ def train(params: Dict) -> None:
         params["data_dir"],
         params["sequence_file"],
         params["label_file"],
-        batch_size=params['batch_size'],
+        batch_size=512,
         for_test='val'
     ))[0]
     print('\n*** *** *** for train+val *** *** ***')
@@ -70,7 +70,7 @@ def train(params: Dict) -> None:
         params["data_dir"],
         params["sequence_file"],
         params["label_file"],
-        batch_size=params['batch_size'],
+        batch_size=512,
         for_test='both'
     ))[0]
 

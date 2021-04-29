@@ -3,14 +3,14 @@ from train import train
 
 parameters = {
     "datasets": [
-        ['dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.data'],
+        ['dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
         ['dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat']
     ],
     "convolution_type": "custom",
     "kernel_size": [8, 12, 16],
     "kernel_count": [16, 32, 64, 128, 256, 512],
     "alpha": [10, 100, 1000],
-    "beta": [10, 100, 1000],
+    "beta": [1/10, 1/100, 1/1000],
     "distribution": [0.3, 0.2, 0.2, 0.3],
     "linear_layer_shapes": [[8], [16], [32]],
     "l1_lambda": 1e-3,
@@ -21,7 +21,7 @@ parameters = {
 }
 
 for dataset in parameters["datasets"]:
-    for conv_type in parameters["convulution_type"]:
+    for conv_type in parameters["convolution_type"]:
         for kernel_size in parameters['kernel_size']:
             for kernel_count in parameters['kernel_count']:
                 for alpha in parameters['alpha']:
@@ -30,6 +30,9 @@ for dataset in parameters["datasets"]:
                             for batch_size in parameters['batch_size']:
                                 for epoch in parameters['epochs']:
                                     params = {
+                                        "data_dir": dataset[0],
+                                        "sequence_file": dataset[1],
+                                        "label_file": dataset[2],
                                         "convolution_type": conv_type,
                                         "kernel_size": kernel_size,
                                         "kernel_count": kernel_count,
