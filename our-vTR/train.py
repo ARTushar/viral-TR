@@ -15,22 +15,22 @@ from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metric_namer import change_keys
 
 SEED = 70
-DATA_DIR = 'dataset1'
-SEQUENCE_FILE = 'SRR3101734_seq.fa'
-LABEL_FILE = 'SRR3101734_out.dat' 
-pl.seed_everything(SEED)
 
 
-def main(args: Namespace, params: Dict) -> None:
+def train(params: Dict) -> None:
+    pl.seed_everything(SEED)
     data_module = SequenceDataModule(
-        DATA_DIR,
-        SEQUENCE_FILE,
-        LABEL_FILE,
+        params["data_dir"],
+        params["sequence_file"],
+        params["label_file"],
         batch_size=params['batch_size']
     )
 
-    trainer = pl.Trainer.from_argparse_args(args, deterministic=True, gpus=-1, auto_select_gpus=True)
+    # trainer = pl.Trainer.from_argparse_args(
+    #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
+    trainer = pl.Trainer(
+        max_epochs=params['epochs'], deterministic=True, gpus=-1, auto_select_gpus=True)
 
     model = SimpleModel(
         convolution_type=params['convolution_type'],
@@ -51,25 +51,25 @@ def main(args: Namespace, params: Dict) -> None:
 
     print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        DATA_DIR,
-        SEQUENCE_FILE,
-        LABEL_FILE,
+        params["data_dir"],
+        params["sequence_file"],
+        params["label_file"],
         batch_size=params['batch_size'],
         for_test='train'
     ))[0]
     print('\n*** *** *** for val *** *** ***')
     val_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        DATA_DIR,
-        SEQUENCE_FILE,
-        LABEL_FILE,
+        params["data_dir"],
+        params["sequence_file"],
+        params["label_file"],
         batch_size=params['batch_size'],
         for_test='val'
     ))[0]
     print('\n*** *** *** for train+val *** *** ***')
     both_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        DATA_DIR,
-        SEQUENCE_FILE,
-        LABEL_FILE,
+        params["data_dir"],
+        params["sequence_file"],
+        params["label_file"],
         batch_size=params['batch_size'],
         for_test='both'
     ))[0]
@@ -90,13 +90,8 @@ def main(args: Namespace, params: Dict) -> None:
 
 if __name__ == "__main__":
     params = json.load(open('parameters.json'))
-
-    parser = ArgumentParser()
-    parser = pl.Trainer.add_argparse_args(parser)
-    args = parser.parse_args()
-    args.__setattr__('max_epochs', params['epochs'])
-
-    main(args, params)
-
-    pl.seed_everything(SEED)
-    main(args, params)
+    # parser = ArgumentParser()
+    # parser = pl.Trainer.add_argparse_args(parser)
+    # args = parser.parse_args()
+    # args.__setattr__('max_epochs', params['epochs'])
+    train(params)
