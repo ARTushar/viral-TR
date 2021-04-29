@@ -12,7 +12,7 @@ from torch.utils.data.dataset import ConcatDataset
 from utils.splitter import read_samples, splitter
 from utils.transforms import transform_all_labels, transform_all_sequences
 
-WORKERS = 2
+WORKERS = 4
 
 
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)
@@ -22,7 +22,9 @@ class CustomSequenceDataset(Dataset):
         super().__init__()
         sequences, labels = read_samples(file_in, file_out)
 
-        self.forward_sequences, self.reverse_sequences = transform(sequences)
+        mx_len = max(len(seq) for seq in sequences)
+
+        self.forward_sequences, self.reverse_sequences = transform(sequences, mx_len)
         self.labels = target_transform(labels)
 
         # self.forward_sequences = self.forward_sequences[0:128]
@@ -104,10 +106,11 @@ class SequenceDataModule(pl.LightningDataModule):
 
 def main():
     data_module = SequenceDataModule(
-        'dataset', 'sequences.fa', 'wt_readout.dat', batch_size=64)
-    data_module.setup(stage='predict')
+        'dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat', batch_size=64)
+    data_module.prepare_data()
+    data_module.setup(stage='fit')
     torch.set_printoptions(threshold=10)
-    for a, b, c in data_module.predict_dataloader():
+    for a, b, c in data_module.train_dataloader():
         print(a.shape)
         print(b.shape)
         print(c.shape)
