@@ -69,18 +69,18 @@ class SimpleModel(pl.LightningModule):
 
         self.train_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2)
+            # F1(num_classes=2)
             # Precision(num_classes=2),
             # Recall(num_classes=2),
             # AUROC(num_classes=2),
         ], prefix='train')
         self.valid_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2)
-        ], prefix='valid')
+            # F1(num_classes=2)
+        ], prefix='val')
         self.test_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2)
+            # F1(num_classes=2)
         ], prefix='test')
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
@@ -117,13 +117,10 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.train_metrics(logits, y.type(torch.int))
 
-        self.log('train_loss', loss, prog_bar=True)
+        self.log('trainLoss', loss, prog_bar=False)
         self.log_dict(metrics, prog_bar=True)
 
         return loss
-
-    def on_train_end(self) -> None:
-        self.logger.log_hyperparams
 
     def validation_step(self, val_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = val_batch
@@ -132,7 +129,7 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.valid_metrics(logits, y.type(torch.int))
 
-        self.log('val_loss', loss, prog_bar=True)
+        self.log('valLoss', loss, prog_bar=True)
         self.log_dict(metrics, prog_bar=True)
 
     def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
@@ -142,8 +139,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.test_metrics(logits, y.type(torch.int))
 
-        self.log('test_loss', loss)
-        self.log('test_auroc', auroc(logits, y.type(torch.int), num_classes=2))
+        self.log('testLoss', loss)
+        self.log('testAUROC', auroc(logits, y.type(torch.int), num_classes=2))
         self.log_dict(metrics)
 
     def configure_optimizers(self) -> Optimizer:

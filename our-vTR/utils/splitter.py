@@ -37,6 +37,8 @@ def splitter(directory:str, raw_in:str, raw_out:str) -> None:
             if line[0] != '>':
                 all_seqs.append(line)
 
+    mx_len = max(len(seq.strip()) for seq in all_seqs)
+
     all_labels = []
     with open(raw_dir_out, 'r') as fo:
         all_labels = list(fo.readlines())

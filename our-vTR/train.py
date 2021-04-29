@@ -1,5 +1,6 @@
 import json
 import os
+import csv
 import time
 from argparse import ArgumentParser, Namespace
 from typing import Dict
@@ -11,19 +12,20 @@ from torch.utils.data.dataset import ConcatDataset
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
 from utils.transforms import transform_all_labels, transform_all_sequences
+from utils.metric_namer import change_keys
 
 SEED = 70
-DATA_DIR = 'dataset'
-SEQUENCE_FILE = 'sequences.fa'
-LABEL_FILE = 'wt_readout.dat' 
+DATA_DIR = 'dataset1'
+SEQUENCE_FILE = 'SRR3101734_seq.fa'
+LABEL_FILE = 'SRR3101734_out.dat' 
 pl.seed_everything(SEED)
 
 
 def main(args: Namespace, params: Dict) -> None:
     data_module = SequenceDataModule(
-        'dataset',
-        'sequences.fa',
-        'wt_readout.dat',
+        DATA_DIR,
+        SEQUENCE_FILE,
+        LABEL_FILE,
         batch_size=params['batch_size']
     )
 
@@ -36,8 +38,8 @@ def main(args: Namespace, params: Dict) -> None:
         kernel_count=params['kernel_count'],
         alpha=params['alpha'],
         beta=params['beta'],
-        distribution=params['distribution'],
-        linear_layer_shapes=params['linear_layer_shapes'],
+        distribution=tuple(params['distribution']),
+        linear_layer_shapes=list(params['linear_layer_shapes']),
         l1_lambda=params['l1_lambda'],
         l2_lambda=params['l2_lambda'],
         lr=params['learning_rate'],
@@ -47,9 +49,43 @@ def main(args: Namespace, params: Dict) -> None:
     trainer.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    trainer.predict(model, datamodule=data_module)
+    print('\n*** *** *** for train *** *** ***')
+    train_metrics = trainer.test(model, datamodule=SequenceDataModule(
+        DATA_DIR,
+        SEQUENCE_FILE,
+        LABEL_FILE,
+        batch_size=params['batch_size'],
+        for_test='train'
+    ))[0]
+    print('\n*** *** *** for val *** *** ***')
+    val_metrics = trainer.test(model, datamodule=SequenceDataModule(
+        DATA_DIR,
+        SEQUENCE_FILE,
+        LABEL_FILE,
+        batch_size=params['batch_size'],
+        for_test='val'
+    ))[0]
+    print('\n*** *** *** for train+val *** *** ***')
+    both_metrics = trainer.test(model, datamodule=SequenceDataModule(
+        DATA_DIR,
+        SEQUENCE_FILE,
+        LABEL_FILE,
+        batch_size=params['batch_size'],
+        for_test='both'
+    ))[0]
 
-    trainer.test(model, datamodule=data_module)
+    change_keys(train_metrics, 'train', 'test')
+    change_keys(val_metrics, 'val', 'test')
+    change_keys(both_metrics, 'both', 'test')
+
+    log_file = 'params_log.csv'
+    logs = {**params, **train_metrics, **val_metrics, **both_metrics}
+    file_exists = os.path.isfile(log_file)
+    f = open(log_file, 'a')
+    dictWriter = csv.DictWriter(f, fieldnames=list(logs.keys()))
+    if not file_exists:
+        dictWriter.writeheader()
+    dictWriter.writerow(logs)
 
 
 if __name__ == "__main__":
@@ -60,4 +96,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     args.__setattr__('max_epochs', params['epochs'])
 
+    main(args, params)
+
+    pl.seed_everything(SEED)
     main(args, params)
