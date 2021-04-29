@@ -7,7 +7,7 @@ parameters = {
         # ['dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat']
     ],
     "convolution_type": ["custom"],
-    "kernel_size": [10, 12, 14],
+    "kernel_size": [14],
     "kernel_count": [128, 256, 512],
     "alpha-beta": [(10, 1/10)],
     # "alpha": [10],
