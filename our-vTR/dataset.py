@@ -56,7 +56,7 @@ class SequenceDataModule(pl.LightningDataModule):
         # self.seed = seed # redundant
 
     def prepare_data(self):
-        splitter(self.directory, self.file_in, self.file_out)
+        # splitter(self.directory, self.file_in, self.file_out)
         pass
 
     def setup(self, stage: Optional[str] = None):

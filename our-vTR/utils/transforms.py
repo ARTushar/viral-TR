@@ -61,10 +61,10 @@ def transform_all_labels(labels: list) -> Tensor:
 # print(transform_input('A')[0].dtype)
 # print(transform_label('0').dtype)
 
-X1, X2 = transform_all_sequences(['ACG', 'CGT'], 10)
-print(X1.shape)
-print(X1.dtype)
-print(X1)
+# X1, X2 = transform_all_sequences(['ACG', 'CGT'], 10)
+# print(X1.shape)
+# print(X1.dtype)
+# print(X1)
 
 # print(X2.shape)
 # print(X2.dtype)

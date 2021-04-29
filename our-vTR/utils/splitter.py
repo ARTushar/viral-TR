@@ -45,7 +45,7 @@ def splitter(directory:str, raw_in:str, raw_out:str) -> None:
     random.shuffle(all_together)
 
     train_split = math.floor(0.9 * len(all_together))
-    cv_split = math.floor(0.02 * len(all_together))
+    cv_split = math.floor(0.1 * len(all_together))
 
     train_together = all_together[0: train_split]
     cv_together = all_together[train_split: train_split+cv_split]
