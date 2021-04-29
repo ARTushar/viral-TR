@@ -2,6 +2,7 @@ import json
 import os
 import csv
 import time
+from datetime import date
 from argparse import ArgumentParser, Namespace
 from typing import Dict
 
@@ -78,7 +79,12 @@ def train(params: Dict) -> None:
     change_keys(val_metrics, 'val', 'test')
     change_keys(both_metrics, 'both', 'test')
 
-    log_file = 'params_log.csv'
+    log_dir = 'params_log'
+
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir)
+
+    log_file = os.path.join(log_dir, 'results-' + date.today().strftime('%d-%m-%Y') + '.csv')
     logs = {**params, **train_metrics, **val_metrics, **both_metrics}
     file_exists = os.path.isfile(log_file)
     f = open(log_file, 'a')

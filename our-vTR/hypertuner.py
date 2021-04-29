@@ -6,17 +6,17 @@ parameters = {
         ['dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
         ['dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat']
     ],
-    "convolution_type": "custom",
-    "kernel_size": [8, 12, 16],
-    "kernel_count": [16, 32, 64, 128, 256, 512],
-    "alpha": [10, 100, 1000],
-    "beta": [1/10, 1/100, 1/1000],
+    "convolution_type": ["custom"],
+    "kernel_size": [12],
+    "kernel_count": [512],
+    "alpha": [10, 1000],
+    "beta": [1/10, 1/1000],
     "distribution": [0.3, 0.2, 0.2, 0.3],
-    "linear_layer_shapes": [[8], [16], [32]],
+    "linear_layer_shapes": [[128, 16]],
     "l1_lambda": 1e-3,
     "l2_lambda": 0,
-    "batch_size": [64, 128, 256, 512],
-    "epochs": [20, 30, 40, 50],
+    "batch_size": [64, 512],
+    "epochs": [20],
     "learning_rate": 1e-3
 }
 

@@ -45,12 +45,15 @@ class SimpleModel(pl.LightningModule):
                 beta=beta,
                 distribution=distribution
             )
-        else:
+        elif convolution_type == 'regular':
             self.conv1d = nn.Conv1d(
                 kernel_size=kernel_size,
                 in_channels=len(distribution),
                 out_channels=kernel_count
             )
+        else:
+            print('********** unknown convolution type **********')
+            exit(1)
 
         linear_layer_shapes.insert(0, kernel_count)
 
