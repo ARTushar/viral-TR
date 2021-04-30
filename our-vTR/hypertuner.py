@@ -1,3 +1,4 @@
+from CV import run_cv
 from train import train
 
 
@@ -7,8 +8,8 @@ parameters = {
         # ['dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat']
     ],
     "convolution_type": ["custom"],
-    "kernel_size": [12],
-    "kernel_count": [128],
+    "kernel_size": [12, 14],
+    "kernel_count": [128, 512],
     "alpha-beta": [(10, 1/10)],
     # "alpha": [10],
     # "beta": [1/10],
@@ -18,7 +19,9 @@ parameters = {
     "l2_lambda": 0,
     "batch_size": [64],
     "epochs": [20],
-    "learning_rate": 1e-3
+    "learning_rate": 1e-3,
+    "stratify": True,
+    "n_splits": 10
 }
 
 for dataset in parameters["datasets"]:
@@ -44,6 +47,9 @@ for dataset in parameters["datasets"]:
                                     "l2_lambda": parameters['l2_lambda'],
                                     "batch_size": batch_size,
                                     "epochs": epoch,
-                                    "learning_rate": parameters['learning_rate']
+                                    "learning_rate": parameters['learning_rate'],
+                                    "n_splits": parameters['n_splits'],
+                                    "stratify": parameters['stratify']
                                 }
-                                train(params)
+                                # train(params)
+                                run_cv(params)

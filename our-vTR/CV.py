@@ -59,7 +59,7 @@ class DataCV:
             _train = Subset(dataset, train_idx)
             train_loader = DataLoader(dataset=_train,
                                       batch_size=self.batch_size,
-                                      shuffle=False,
+                                      shuffle=True,
                                       num_workers=self.num_workers)
 
             _val = Subset(dataset, val_idx)
@@ -68,7 +68,16 @@ class DataCV:
                                     shuffle=False,
                                     num_workers=self.num_workers)
 
-            yield train_loader, val_loader
+            train_test_loader = DataLoader(dataset=_train,
+                                      batch_size=512,
+                                      shuffle=False,
+                                      num_workers=self.num_workers)
+
+            val_test_loader = DataLoader(dataset=_val,
+                                    batch_size=512,
+                                    shuffle=False,
+                                    num_workers=self.num_workers)
+            yield train_loader, val_loader, train_test_loader, val_test_loader
 
 
     def read_full_train_data(self):
@@ -147,7 +156,7 @@ class CV:
     def fit(self, model: LightningModule, datamodule: DataCV):
         splits = datamodule.get_splits()
         avg_metrics = {}
-        for fold_idx, loaders in enumerate(splits):
+        for fold_idx, (train_loader, val_loader, train_test_loader, val_test_loader) in enumerate(splits):
 
             # Clone model & instantiate a new trainer:
             _model = deepcopy(model)
@@ -160,9 +169,9 @@ class CV:
                     self.update_modelcheckpoint(callback, fold_idx)
 
             # Fit:
-            trainer.fit(_model, *loaders)
+            trainer.fit(_model, train_loader, val_loader)
 
-            for metrics in find_metrics(_model, trainer, loaders[0], loaders[1]):
+            for metrics in find_metrics(_model, trainer, train_test_loader, val_test_loader):
                 for key, value in metrics.items():
                     if key not in avg_metrics:
                         avg_metrics[key] = 0
@@ -188,6 +197,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         batch_size=params['batch_size'],
         n_splits=params['n_splits'],
         stratify=params['stratify'],
+        num_workers=2
     )
 
     trainer_kwargs_ = {
@@ -196,8 +206,8 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'num_sanity_val_steps': 0,
         'max_epochs': params['epochs'],
         'deterministic': True,
-        # 'gpus': -1,
-        # 'auto_select_gpus': True
+        'gpus': -1,
+        'auto_select_gpus': True
         # 'callbacks': [model_checkpoint]
     }
 

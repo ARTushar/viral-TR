@@ -70,7 +70,7 @@ class SimpleModel(pl.LightningModule):
 
         self.linears = nn.Sequential(*linears)
 
-        # TO DO: Check macro vs micro average
+        # TODO: Check macro vs micro average
 
         self.train_metrics = MetricCollection([
             Accuracy(),

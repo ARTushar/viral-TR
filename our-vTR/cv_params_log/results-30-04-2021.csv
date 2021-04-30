@@ -1,3 +1,0 @@
-data_dir,sequence_file,label_file,n_splits,stratify,convolution_type,kernel_size,kernel_count,alpha,beta,distribution,linear_layer_shapes,l1_lambda,l2_lambda,batch_size,epochs,learning_rate,trainLoss,trainAUROC,trainAccuracy,valLoss,valAUROC,valAccuracy
-dataset1,SRR3101734_seq.fa,SRR3101734_out.dat,2,True,regular,12,128,10,0.1,"[0.3, 0.2, 0.2, 0.3]",[32],0.001,0,64,1,0.001,0.8288853168487549,0.6810809075832367,0.5505319237709045,0.8299819529056549,0.6153594851493835,0.5265957415103912
-dataset1,SRR3101734_seq.fa,SRR3101734_out.dat,2,True,regular,12,128,10,0.1,"[0.3, 0.2, 0.2, 0.3]",[32],0.001,0,64,1,0.001,0.8375045657157898,0.6629288494586945,0.5258358716964722,0.8390622437000275,0.5978562831878662,0.5178571492433548
