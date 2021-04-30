@@ -74,7 +74,6 @@ class SimpleModel(pl.LightningModule):
 
         self.train_metrics = MetricCollection([
             Accuracy(),
-            # F1(num_classes=2)
             # Precision(num_classes=2),
             # Recall(num_classes=2),
             # AUROC(num_classes=2),
@@ -85,6 +84,7 @@ class SimpleModel(pl.LightningModule):
         ], prefix='val')
         self.test_metrics = MetricCollection([
             Accuracy(),
+            F1(num_classes=2)
             # F1(num_classes=2)
         ], prefix='test')
 

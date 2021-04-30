@@ -2,6 +2,8 @@ import math
 import os
 import random
 
+from torch.functional import split
+
 
 def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, samples:list) -> None:
     type_in = os.path.join(directory, sample_type, raw_in)
@@ -72,3 +74,6 @@ def read_samples(sequence_file, label_file):
         labels = [line.strip() for line in ofile.readlines()]
 
     return sequences, labels
+
+if __name__ == '__main__':
+    splitter('dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')

@@ -1,15 +1,23 @@
 from copy import deepcopy
+import json
 import os
+import time
+import random
 from pathlib import Path
-from typing import Union, Optional, Callable
+from typing import Dict, List, Union, Optional, Callable, Tuple
 
 from sklearn.model_selection import KFold, StratifiedKFold
+from torch.utils import data
 from torch.utils.data import ConcatDataset, Subset, DataLoader
 
+import pytorch_lightning as pl
 from pytorch_lightning import Trainer, LightningModule
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import NeptuneLogger, LoggerCollection
-from dataset import CustomSequenceDataset
+from pytorch_lightning.loggers import LoggerCollection
+from dataset import CustomSequenceDataset, SequenceDataModule
+from utils.metric_namer import change_keys
+from utils.metrics import find_metrics, log_metrics
+from utils.splitter import read_samples
 from utils.transforms import transform_all_sequences, transform_all_labels
 
 from model import SimpleModel
@@ -22,7 +30,7 @@ class DataCV:
                  data_dir: Union[str, Path],
                  sequence_file: str,
                  label_file: str,
-                 num_workers: int = 16,
+                 num_workers: int = 4,
                  batch_size: int = 32,
                  n_splits: int = 5,
                  stratify: bool = False):
@@ -51,7 +59,7 @@ class DataCV:
             _train = Subset(dataset, train_idx)
             train_loader = DataLoader(dataset=_train,
                                       batch_size=self.batch_size,
-                                      shuffle=True,
+                                      shuffle=False,
                                       num_workers=self.num_workers)
 
             _val = Subset(dataset, val_idx)
@@ -62,23 +70,33 @@ class DataCV:
 
             yield train_loader, val_loader
 
-    def get_dataset(self):
-        """Creates and returns the complete dataset."""
+
+    def read_full_train_data(self):
         train_sequence_path = os.path.join(self.data_dir, 'train',  self.sequence_file)
         train_label_path = os.path.join(self.data_dir, 'train', self.label_file)
         cv_sequence_path = os.path.join(self.data_dir, 'cv',  self.sequence_file)
         cv_label_path = os.path.join(self.data_dir, 'cv', self.label_file)
 
-        train_dataset = CustomSequenceDataset(
-            train_sequence_path, train_label_path, transform_all_sequences, transform_all_labels)
-        cv_dataset = CustomSequenceDataset(
-            cv_sequence_path, cv_label_path, transform_all_sequences, transform_all_labels)
+        train_sequences, train_labels = read_samples(train_sequence_path, train_label_path)
+        cv_sequences, cv_labels = read_samples(cv_sequence_path, cv_label_path)
 
-        return ConcatDataset([train_dataset, cv_dataset])
+        return [*train_sequences, *cv_sequences], [*train_labels, *cv_labels],
+
+
+    def get_dataset(self):
+        """Creates and returns the complete dataset."""
+        sequences, labels = self.read_full_train_data()
+        train_dataset = CustomSequenceDataset(
+            sequences,
+            labels,
+            transform_all_sequences,
+            transform_all_labels
+        )
+        return train_dataset
 
     def get_data_labels(self):
-        dataset = self.get_dataset()
-        return [int(sample[2]) for sample in dataset]
+        _, labels = self.read_full_train_data()
+        return labels
 
 
 class CV:
@@ -126,11 +144,10 @@ class CV:
         for _logger in _loggers:
             self._update_logger(_logger, fold_idx)
 
-    def fit(self, model: LightningModule, data: DataCV):
-        splits = data.get_splits()
+    def fit(self, model: LightningModule, datamodule: DataCV):
+        splits = datamodule.get_splits()
+        avg_metrics = {}
         for fold_idx, loaders in enumerate(splits):
-
-            print("Fold inx: ", fold_idx)
 
             # Clone model & instantiate a new trainer:
             _model = deepcopy(model)
@@ -145,15 +162,70 @@ class CV:
             # Fit:
             trainer.fit(_model, *loaders)
 
+            for metrics in find_metrics(_model, trainer, loaders[0], loaders[1]):
+                for key, value in metrics.items():
+                    if key not in avg_metrics:
+                        avg_metrics[key] = 0
+                    avg_metrics[key] += value
+
+            print(f'folding iteration-{fold_idx+1}:')
+            for key, value in avg_metrics.items():
+                print(f'{key}: {value}')
+
+        for key in list(avg_metrics.keys()):
+            avg_metrics[key] /= datamodule.n_splits
+        return avg_metrics
+
+
+def run_cv(params, seed: int = random.randint(1, 1000)):
+    print('using seed:', seed)
+    pl.seed_everything(seed)
+
+    data_module = DataCV(
+        data_dir=params['data_dir'],
+        sequence_file=params['sequence_file'],
+        label_file=params['label_file'],
+        batch_size=params['batch_size'],
+        n_splits=params['n_splits'],
+        stratify=params['stratify'],
+    )
+
+    trainer_kwargs_ = {
+        # 'weights_summary': None,
+        # 'progress_bar_refresh_rate': 1,
+        # 'num_sanity_val_steps': 0,
+        'max_epochs': params['epochs'],
+        'deterministic': True,
+        # 'gpus': -1,
+        # 'auto_select_gpus': True
+        # 'callbacks': [model_checkpoint]
+    }
+
+    cv = CV(**trainer_kwargs_)
+
+    model = SimpleModel(
+        convolution_type=params['convolution_type'],
+        kernel_size=params['kernel_size'],
+        kernel_count=params['kernel_count'],
+        alpha=params['alpha'],
+        beta=params['beta'],
+        distribution=tuple(params['distribution']),
+        linear_layer_shapes=list(params['linear_layer_shapes']),
+        l1_lambda=params['l1_lambda'],
+        l2_lambda=params['l2_lambda'],
+        lr=params['learning_rate'],
+    )
+
+    start_time = time.time()
+    avg_metrics = cv.fit(model, datamodule=data_module)
+    print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
+
+    log_metrics(params, avg_metrics)
+
 
 if __name__ == '__main__':
 
-    # Trainer
-    # NEPTUNE_PROJECT_NAME = 'viral-tf'
-    # NEPTUNE_EXPERIMENT_NAME = 'cv-test'
-    # neptune_logger = NeptuneLogger(project_name=NEPTUNE_PROJECT_NAME,
-    #                                 offline_mode=True,
-    #                                experiment_name=NEPTUNE_EXPERIMENT_NAME)
+    params = json.load(open('parameters.json'))
 
     # model_checkpoint = ModelCheckpoint(dirpath=MODEL_CHECKPOINT_DIR_PATH,
     #                                    monitor='val_acc',
@@ -161,44 +233,4 @@ if __name__ == '__main__':
     #                                    mode='max',
     #                                    filename='custom_model_{epoch}',)
 
-    trainer_kwargs_ = {
-                        # 'weights_summary': None,
-                    #    'progress_bar_refresh_rate': 1,
-                    #    'num_sanity_val_steps': 0,
-                       'gpus': [0],
-                       'max_epochs': 10,
-                    #    'logger': neptune_logger,
-                       #    'callbacks': [model_checkpoint]
-                       }
-
-    cv = CV(**trainer_kwargs_)
-
-    # LightningModule
-
-    params = {
-        'kernel_size': 12,
-        'alpha': 1e3,
-        'beta': 1e-3,
-        'l1_lambda': 1e-3,
-        'l2_lambda': 0,
-        'batch_size': 64,
-        'epochs': 20
-    }
-    model = SimpleModel(
-        seq_length=156,
-        kernel_size=params['kernel_size'],
-        alpha=params['alpha'],
-        beta=params['beta'],
-        distribution=(0.3, 0.2, 0.2, 0.3),
-        l1_lambda=params['l1_lambda'],
-        l2_lambda=params['l2_lambda'],
-        lr=1e-3
-    )
-    DATA_DIR = 'dataset'
-    SEQUENCE_FILE = 'sequences.fa'
-    LABEL_FILE = 'wt_readout.dat'
-
-    # Run a 5-fold cross-validation experiment:
-    sequence_data = DataCV(data_dir=DATA_DIR, sequence_file=SEQUENCE_FILE, label_file=LABEL_FILE, n_splits=5, stratify=False)
-
-    cv.fit(model, sequence_data)
+    run_cv(params)

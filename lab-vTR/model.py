@@ -135,23 +135,23 @@ class ConvolutionLayer(Conv1D):
             #     )
 
 
-            def calculate(x):
-                alpha_x = tf.math.scalar_mul(alpha, x)
-                ax_reduced = tf.math.reduce_max(alpha_x, axis=1)
-                axr_expanded = tf.expand_dims(ax_reduced, axis=1)
-                ax_sub_axre = tf.subtract(alpha_x, axr_expanded)
-                softmaxed = tf.math.reduce_sum(tf.math.exp(ax_sub_axre), axis=1)
-                sm_log_expanded = tf.expand_dims(tf.math.log(softmaxed), axis=1)
-                axsaxre_sub_smle = tf.subtract(ax_sub_axre, sm_log_expanded)
+            # def calculate(x):
+            #     alpha_x = tf.math.scalar_mul(alpha, x)
+            #     ax_reduced = tf.math.reduce_max(alpha_x, axis=1)
+            #     axr_expanded = tf.expand_dims(ax_reduced, axis=1)
+            #     ax_sub_axre = tf.subtract(alpha_x, axr_expanded)
+            #     softmaxed = tf.math.reduce_sum(tf.math.exp(ax_sub_axre), axis=1)
+            #     sm_log_expanded = tf.expand_dims(tf.math.log(softmaxed), axis=1)
+            #     axsaxre_sub_smle = tf.subtract(ax_sub_axre, sm_log_expanded)
 
-                bkg_streched = tf.tile(bkg_tf, [ tf.shape(x)[0] ])
-                bkg_stacked = tf.reshape(bkg_streched, [ tf.shape(x)[0], tf.shape(bkg_tf)[0] ])
-                bkgs_log = tf.math.log(bkg_stacked)
+            #     bkg_streched = tf.tile(bkg_tf, [ tf.shape(x)[0] ])
+            #     bkg_stacked = tf.reshape(bkg_streched, [ tf.shape(x)[0], tf.shape(bkg_tf)[0] ])
+            #     bkgs_log = tf.math.log(bkg_stacked)
 
-                return tf.math.scalar_mul(beta, tf.subtract(axsaxre_sub_smle, bkgs_log))
+            #     return tf.math.scalar_mul(beta, tf.subtract(axsaxre_sub_smle, bkgs_log))
 
 
-            filt_list = tf.map_fn(calculate, x_tf)
+            # filt_list = tf.map_fn(calculate, x_tf)
 
 
 
@@ -531,14 +531,39 @@ class nn_model:
 
         true_pred = 0
         false_pred = 0
+
+        true_pos, true_neg, false_pos, false_neg = 0, 0, 0, 0
+
         for count, value in enumerate(predictions_test):
             if y1_test_orig[count] == predictions_test[count]:
                 true_pred += 1
+                if value == 1:
+                    true_pos += 1
+                else:
+                    true_neg += 1
             else:
                 false_pred += 1
+                if value == 1:
+                    false_pos += 1
+                else:
+                    false_neg += 1
+
         print('Total number of test-set predictions is: ' + str(len(y1_test_orig)))
         print('Number of correct test-set predictions is: ' + str(true_pred))
         print('Number of incorrect test-set predictions is: ' + str(false_pred))
+
+        print('True Positives:', true_pos)
+        print('True Negatives:', true_neg)
+        print('False Positives:', false_pos)
+        print('False Negatives:', false_neg)
+
+        precision = true_pos/(true_pos+false_pos)
+        recall = true_pos/(true_pos+false_neg)
+        print('Precision:', precision)
+        print('Recall:', recall)
+
+        f1 = 2 / (1 / precision + 1 / recall)
+        print('F1 Score:', f1)
 
         auc_score = sklearn.metrics.roc_auc_score(
             y1_test_orig, predictions_test)
