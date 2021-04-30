@@ -84,7 +84,7 @@ class SimpleModel(pl.LightningModule):
         ], prefix='val')
         self.test_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2)
+            F1(num_classes=2, average='macro')
             # F1(num_classes=2)
         ], prefix='test')
 
