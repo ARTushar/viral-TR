@@ -37,6 +37,7 @@ class SimpleModel(pl.LightningModule):
         self.lr = lr
 
         if convolution_type == 'custom':
+            print('using CUSTOM convolution')
             self.conv1d = CustomConv1d(
                 kernel_size=kernel_size,
                 in_channels=len(distribution),
@@ -46,6 +47,7 @@ class SimpleModel(pl.LightningModule):
                 distribution=distribution
             )
         elif convolution_type == 'regular':
+            print('using REGULAR convolution')
             self.conv1d = nn.Conv1d(
                 kernel_size=kernel_size,
                 in_channels=len(distribution),
@@ -155,8 +157,9 @@ class SimpleModel(pl.LightningModule):
 
     def cross_entropy_loss(self, logits: Tensor, labels: Tensor) -> Tensor:
         bce_loss = F.binary_cross_entropy(logits, labels)
-        reg_loss = self.l1_lambda * sum(sum(x.abs().sum()
-                                        for x in linear.parameters()) for linear in self.linears)
+        reg_loss = self.l1_lambda * sum(
+            sum(x.abs().sum() for x in linear.parameters()) for linear in self.linears
+        )
         # reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linears[2].parameters())
         return bce_loss + reg_loss
     
