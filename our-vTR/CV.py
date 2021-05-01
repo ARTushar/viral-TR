@@ -158,6 +158,8 @@ class CV:
         avg_metrics = {}
         for fold_idx, (train_loader, val_loader, train_test_loader, val_test_loader) in enumerate(splits):
 
+            print(''.join('=' for _ in range(100)), end='\n\n')
+
             # Clone model & instantiate a new trainer:
             _model = deepcopy(model)
             trainer = Trainer(*self.trainer_args, **self.trainer_kwargs)
@@ -177,9 +179,9 @@ class CV:
                         avg_metrics[key] = 0
                     avg_metrics[key] += value
 
-            print(f'folding iteration-{fold_idx+1}:')
+            print(f'\n{datamodule.n_splits}-fold iteration {fold_idx}:')
             for key, value in avg_metrics.items():
-                print(f'{key}: {value}')
+                print('| {:>15} | {:.4f} |'.format(key, value/(fold_idx + 1)))
 
         for key in list(avg_metrics.keys()):
             avg_metrics[key] /= datamodule.n_splits
@@ -197,7 +199,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         batch_size=params['batch_size'],
         n_splits=params['n_splits'],
         stratify=params['stratify'],
-        num_workers=2
+        # num_workers=2
     )
 
     trainer_kwargs_ = {
@@ -230,7 +232,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
     avg_metrics = cv.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    log_metrics(params, avg_metrics)
+    log_metrics({**params, **avg_metrics})
 
 
 if __name__ == '__main__':
