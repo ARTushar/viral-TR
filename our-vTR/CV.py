@@ -207,9 +207,9 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'progress_bar_refresh_rate': 1,
         # 'num_sanity_val_steps': 0,
         'max_epochs': params['epochs'],
-        'deterministic': True,
-        'gpus': -1,
-        'auto_select_gpus': True
+        # 'deterministic': True,
+        # 'gpus': -1,
+        # 'auto_select_gpus': True
         # 'callbacks': [model_checkpoint]
     }
 
@@ -232,7 +232,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
     avg_metrics = cv.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    log_metrics({**params, **avg_metrics})
+    log_metrics({'seed': seed, **params, **avg_metrics})
 
 
 if __name__ == '__main__':
