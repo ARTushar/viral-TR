@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Dict, Tuple, List
 
 import pytorch_lightning as pl
 import torch
@@ -6,7 +6,7 @@ from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.optimizer import Optimizer
-from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall
+from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall, AUROC
 from torchmetrics.functional import auroc
 
 from CustomConv1d import CustomConv1d
@@ -84,8 +84,8 @@ class SimpleModel(pl.LightningModule):
         ], prefix='val')
         self.test_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2, average='macro')
-            # F1(num_classes=2)
+            F1(num_classes=2, average='macro'),
+            # AUROC(num_classes=2) # macro
         ], prefix='test')
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:

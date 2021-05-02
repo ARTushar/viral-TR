@@ -14,6 +14,6 @@
     "l1_lambda": 1e-3,
     "l2_lambda": 0,
     "batch_size": 64,
-    "epochs": 1,
+    "epochs": 2,
     "learning_rate": 1e-3
 }

@@ -11,6 +11,10 @@ case $1 in
         echo 'running plain train'
         python3 train.py
     ;;
+    b)
+        echo 'running tensorboard'
+        python3 -m tensorboard.main --logdir 
+    ;;
     *)
         echo 'invalid arguments, check inside' $0 'file'
     ;;
