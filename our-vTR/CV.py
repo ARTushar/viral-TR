@@ -238,8 +238,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
     }
 
     k = params['n_splits']
-    log_dir = os.path.join(f'{k}_fold_lightning_logs', params['log_dir'])
-    avg_dir = os.path.join(f'{k}_fold_average_logs', params['log_dir'])
+    log_dir = os.path.join(f'{k}_fold_lightning_logs', params['data_dir'])
 
     cv = CV(log_dir=log_dir, **trainer_kwargs_)
 
@@ -266,7 +265,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
 
     write_reduced_tb_events(
         os.path.join(log_dir, 'fold_*', 'version_' + str(version)),
-        os.path.join(avg_dir, 'version_' + str(version))
+        os.path.join(log_dir, 'average', 'version_' + str(version))
     )
 
 

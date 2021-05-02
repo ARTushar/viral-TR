@@ -12,8 +12,16 @@ case $1 in
         python3 train.py
     ;;
     b)
-        echo 'running tensorboard'
-        python3 -m tensorboard.main --logdir 
+        case $2 in
+        '')
+            echo 'enter fold count'
+            exit
+        ;;
+        *)
+            echo 'running tensorboard'
+            python3 -m tensorboard.main --logdir $2_fold_lightning_logs/dataset1
+        ;;
+        esac
     ;;
     *)
         echo 'invalid arguments, check inside' $0 'file'
