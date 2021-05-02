@@ -44,14 +44,10 @@ def log_metrics(logs: Dict) -> None:
     f = open(log_file, 'a')
 
     headers = list(logs.keys())
-    headers.insert(0, 'version')
 
     dictWriter = csv.DictWriter(f, fieldnames=headers)
-    if file_exists:
-        logs['version'] = sum(1 for _ in csv.reader(open(log_file)))
-    else:
+    if not file_exists:
         dictWriter.writeheader()
-        logs['version'] = 1
 
 
     dictWriter.writerow(logs)

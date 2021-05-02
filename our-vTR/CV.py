@@ -1,5 +1,6 @@
 from copy import deepcopy
 import json
+from logging import log
 import os
 import time
 import random
@@ -13,12 +14,13 @@ from torch.utils.data import ConcatDataset, Subset, DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer, LightningModule
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import LoggerCollection
+from pytorch_lightning.loggers import LoggerCollection, TensorBoardLogger
 from dataset import CustomSequenceDataset, SequenceDataModule
 from utils.metric_namer import change_keys
 from utils.metrics import find_metrics, log_metrics
 from utils.splitter import read_samples
 from utils.transforms import transform_all_sequences, transform_all_labels
+from utils.tb_aggregator import write_reduced_tb_events
 
 from model import SimpleModel
 
@@ -112,26 +114,32 @@ class CV:
     """Cross-validation with a LightningModule."""
 
     def __init__(self,
+                log_dir: str,
                  *trainer_args,
                  **trainer_kwargs):
         super().__init__()
+        self.log_dir = log_dir
         self.trainer_args = trainer_args
         self.trainer_kwargs = trainer_kwargs
+        self.fitted = False # to restrict more than one self.fit() call
 
-    @staticmethod
-    def _update_logger(logger, fold_idx: int):
-        if hasattr(logger, 'experiment_name'):
-            logger_key = 'experiment_name'
-            print('exp name ', getattr(logger, 'experiment_name'))
-        elif hasattr(logger, 'name'):
-            logger_key = 'name'
-            print(getattr(logger, 'name'))
-        else:
-            raise AttributeError('The logger associated with the trainer '
-                                 'should have an `experiment_name` or `name` '
-                                 'attribute.')
-        new_experiment_name = getattr(logger, logger_key) + f'/{fold_idx}'
-        setattr(logger, logger_key, new_experiment_name)
+    # @staticmethod
+    # def _update_logger(logger, fold_idx: int):
+    #     if hasattr(logger, 'experiment_name'):
+    #         logger_key = 'experiment_name'
+    #         print('exp name ', getattr(logger, 'experiment_name'))
+    #     elif hasattr(logger, 'name'):
+    #         logger_key = 'name'
+    #         print(getattr(logger, 'name'))
+    #     else:
+    #         raise AttributeError('The logger associated with the trainer '
+    #                              'should have an `experiment_name` or `name` '
+    #                              'attribute.')
+    #     new_experiment_name = getattr(logger, logger_key) + f'_v{fold_idx}'
+
+    #     print('got', logger_key, new_experiment_name)
+
+    #     setattr(logger, logger_key, new_experiment_name)
 
     @staticmethod
     def update_modelcheckpoint(model_ckpt_callback, fold_idx):
@@ -143,19 +151,32 @@ class CV:
             new_filename = model_ckpt_callback.filename + _suffix
         setattr(model_ckpt_callback, 'filename', new_filename)
 
-    def update_logger(self, trainer: Trainer, fold_idx: int):
-        if not isinstance(trainer.logger, LoggerCollection):
-            _loggers = [trainer.logger]
-        else:
-            _loggers = trainer.logger
+    # def update_logger(self, trainer: Trainer, fold_idx: int):
+    #     if not isinstance(trainer.logger, LoggerCollection):
+    #         _loggers = [trainer.logger]
+    #     else:
+    #         _loggers = trainer.logger
 
-        # Update loggers:
-        for _logger in _loggers:
-            self._update_logger(_logger, fold_idx)
+    #     # Update loggers:
+    #     for _logger in _loggers:
+    #         self._update_logger(_logger, fold_idx)
+
+    def version(self):
+        for i in range(1, len(self.versions)):
+            if self.versions[i] != self.versions[i-1]:
+                print('CV: all versions not same: ', self.versions)
+        return max(self.versions)
+
 
     def fit(self, model: LightningModule, datamodule: DataCV):
+        assert not self.fitted, 'Only one call to fit() allowed per CV instance'
+        self.fitted = True
+
         splits = datamodule.get_splits()
         avg_metrics = {}
+
+        self.versions = [] 
+
         for fold_idx, (train_loader, val_loader, train_test_loader, val_test_loader) in enumerate(splits):
 
             print(''.join('=' for _ in range(100)), end='\n\n')
@@ -163,6 +184,7 @@ class CV:
             # Clone model & instantiate a new trainer:
             _model = deepcopy(model)
             trainer = Trainer(*self.trainer_args, **self.trainer_kwargs)
+            trainer.logger = TensorBoardLogger(save_dir=self.log_dir, name=f'fold_{fold_idx}')
 
             # Update loggers and callbacks:
             # self.update_logger(trainer, fold_idx)
@@ -172,6 +194,8 @@ class CV:
 
             # Fit:
             trainer.fit(_model, train_loader, val_loader)
+
+            self.versions.append(trainer.logger.version)
 
             for metrics in find_metrics(_model, trainer, train_test_loader, val_test_loader):
                 for key, value in metrics.items():
@@ -213,7 +237,10 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'callbacks': [model_checkpoint]
     }
 
-    cv = CV(**trainer_kwargs_)
+    k = params['n_splits']
+    log_dir = os.path.join(f'{k}_fold_lightning_logs', params['data_dir'])
+
+    cv = CV(log_dir=log_dir, **trainer_kwargs_)
 
     model = SimpleModel(
         convolution_type=params['convolution_type'],
@@ -232,7 +259,14 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
     avg_metrics = cv.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    log_metrics({'seed': seed, **params, **avg_metrics})
+    version = cv.version()
+
+    log_metrics({'version': version, 'seed': seed, **params, **avg_metrics})
+
+    write_reduced_tb_events(
+        os.path.join(log_dir, 'fold_*', 'version_' + str(version)),
+        os.path.join(log_dir, 'average', 'version_' + str(version))
+    )
 
 
 if __name__ == '__main__':
