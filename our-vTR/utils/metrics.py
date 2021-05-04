@@ -2,8 +2,13 @@ import os, csv
 from pytorch_lightning import LightningModule, Trainer
 from torch.utils.data import DataLoader
 from typing import Dict, Tuple
-from utils.metric_namer import change_keys
 from datetime import date
+
+from typing import Any, Dict
+
+def change_keys(d: Dict[str, Any], add, sub):
+    for key in list(d.keys()):
+        d[add + key[len(sub):]] = d.pop(key)
 
 def find_metrics(
     model: LightningModule,
@@ -51,3 +56,8 @@ def log_metrics(logs: Dict) -> None:
 
 
     dictWriter.writerow(logs)
+
+if __name__ == '__main__':
+    d = {"ami": 2, "atumi": 1}
+    change_keys(d, 'hi', 'a')
+    print(d)

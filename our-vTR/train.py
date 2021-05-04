@@ -13,13 +13,13 @@ from torch.utils.data.dataset import ConcatDataset
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
 from utils.transforms import transform_all_labels, transform_all_sequences
-from utils.metric_namer import change_keys
+from utils.metrics import change_keys
 
 SEED = 70
 
 
 def train(params: Dict) -> None:
-    pl.seed_everything(SEED)
+    pl.seed_everything(SEED, workers=True)
     data_module = SequenceDataModule(
         params["data_dir"],
         params["sequence_file"],

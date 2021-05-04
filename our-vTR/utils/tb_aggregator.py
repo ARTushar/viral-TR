@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from glob import glob
 from os.path import isdir
 from shutil import rmtree
-from typing import List
+from typing import List, Tuple, Dict
 
 import numpy as np
 from tensorboard.backend.event_processing.event_accumulator import (
@@ -13,7 +13,7 @@ from tensorboard.backend.event_processing.event_accumulator import (
 from torch.utils.tensorboard import SummaryWriter
 
 
-def read_tb_events(in_dirs_glob: str) -> dict:
+def read_tb_events(in_dirs_glob: str) -> Tuple[dict, dict]:
     """Read the TensorBoard event files matching the provided glob pattern
     and return their scalar data as a dict with data tags as keys.
 
@@ -35,15 +35,17 @@ def read_tb_events(in_dirs_glob: str) -> dict:
         # assert all runs have the same tags for scalar data
         assert iterator.Tags()["scalars"] == tags
 
-    out = {t: [] for t in tags}
+    steps = {tag: [] for tag in tags}
+    values = {tag: [] for tag in tags}
 
     for tag in tags:
         for events in zip(*[acc.Scalars(tag) for acc in summary_iterators]):
             assert len({e.step for e in events}) == 1
 
-            out[tag].append([e.value for e in events])
+            steps[tag].append([e.step for e in events])
+            values[tag].append([e.value for e in events])
 
-    return out
+    return steps, values
 
 
 def write_reduced_tb_events(
@@ -79,12 +81,11 @@ def write_reduced_tb_events(
     n_runs = len(glob(in_dirs_glob))
     assert n_runs > 0, f"No runs found for glob pattern '{in_dirs_glob}'"
 
-    print(f"\nReducing {len(glob(in_dirs_glob))} TensorBoard runs to '{outdir}'\n")
+    steps_to_log, values_to_reduce = read_tb_events(in_dirs_glob)
 
-    runs_to_reduce = read_tb_events(in_dirs_glob)
-
-    tags, values = zip(*runs_to_reduce.items())
-
+    _, steps_all = zip(*steps_to_log.items())
+    tags, values = zip(*values_to_reduce.items())
+    
     # values = np.array(values)
 
     # write mean reduction
@@ -92,11 +93,25 @@ def write_reduced_tb_events(
 
     # timestep_mean = values.mean(axis=-1)
 
-    timestep_mean = [np.array(metric).mean(axis=-1) for metric in values]
+    for metric in steps_all:
+        for steps in metric:
+            assert [steps[0]] * len(steps) == steps, f'Not all steps are same for each fold run {steps}'
 
-    for tag, means in zip(tags, timestep_mean):
-        for idx, mean in enumerate(means):
-            writer.add_scalar(tag, mean, idx)
+    print(f"Reducing {len(glob(in_dirs_glob))} TensorBoard runs to '{outdir}'\n")
+
+    timestep = [[steps[0] for steps in metric] for metric in steps_all]
+    timestep_mean = [np.array(np.array(metric).mean(axis=-1)) for metric in values]
+
+    assert len(tags) == len(timestep) and len(tags) == len(timestep_mean)
+
+    for tag, means, steps in zip(tags, timestep_mean, timestep):
+        # print(f'{tag}:')
+        for mean, step in zip(means, steps):
+            # print(f'\t{step}: {mean}')
+            writer.add_scalar(tag, mean, step)
+        # for idx, mean in enumerate(means):
+        #     # print(f'\t{idx}: {mean}')
+        #     writer.add_scalar(tag, mean, idx)
 
     # Important for allowing reduce_tb_events to overwrite. Without it,
     # try_rmtree will raise OSError: [Errno 16] Device or resource busy

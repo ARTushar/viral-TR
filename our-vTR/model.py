@@ -122,8 +122,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.train_metrics(logits, y.type(torch.int))
 
-        self.log('trainLoss', loss, prog_bar=False)
-        self.log_dict(metrics, prog_bar=True)
+        self.log('trainLoss', loss, on_epoch=True, on_step=False, prog_bar=False)
+        self.log_dict(metrics, on_epoch=True, on_step=False, prog_bar=True)
 
         return loss
 
@@ -134,8 +134,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.valid_metrics(logits, y.type(torch.int))
 
-        self.log('valLoss', loss, prog_bar=True)
-        self.log_dict(metrics, prog_bar=True)
+        self.log('valLoss', loss, on_epoch=True, on_step=False, prog_bar=True)
+        self.log_dict(metrics, on_epoch=True, on_step=False, prog_bar=True)
 
     def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = test_batch

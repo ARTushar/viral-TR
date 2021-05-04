@@ -16,7 +16,6 @@ from pytorch_lightning import Trainer, LightningModule
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import LoggerCollection, TensorBoardLogger
 from dataset import CustomSequenceDataset, SequenceDataModule
-from utils.metric_namer import change_keys
 from utils.metrics import find_metrics, log_metrics
 from utils.splitter import read_samples
 from utils.transforms import transform_all_sequences, transform_all_labels
@@ -183,8 +182,11 @@ class CV:
 
             # Clone model & instantiate a new trainer:
             _model = deepcopy(model)
-            trainer = Trainer(*self.trainer_args, **self.trainer_kwargs)
-            trainer.logger = TensorBoardLogger(save_dir=self.log_dir, name=f'fold_{fold_idx}')
+            trainer = Trainer(
+                logger=TensorBoardLogger(save_dir=self.log_dir, name=f'fold_{fold_idx}'),
+                *self.trainer_args,
+                **self.trainer_kwargs
+            )
 
             # Update loggers and callbacks:
             # self.update_logger(trainer, fold_idx)
@@ -214,7 +216,7 @@ class CV:
 
 def run_cv(params, seed: int = random.randint(1, 1000)):
     print('using seed:', seed)
-    pl.seed_everything(seed)
+    pl.seed_everything(seed, workers=True)
 
     data_module = DataCV(
         data_dir=params['data_dir'],
@@ -231,7 +233,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'progress_bar_refresh_rate': 1,
         # 'num_sanity_val_steps': 0,
         'max_epochs': params['epochs'],
-        # 'deterministic': True,
+        'deterministic': True,
         # 'gpus': -1,
         # 'auto_select_gpus': True
         # 'callbacks': [model_checkpoint]
@@ -279,4 +281,4 @@ if __name__ == '__main__':
     #                                    mode='max',
     #                                    filename='custom_model_{epoch}',)
 
-    run_cv(params)
+    run_cv(params, seed=738)

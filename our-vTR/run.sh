@@ -23,6 +23,10 @@ case $1 in
         ;;
         esac
     ;;
+    a)
+        echo 'running aggregator'
+        python3 utils/tb_aggregator.py -d 'lightning_logs/*' -o 'lightning_logs/test_aggr'
+    ;;
     *)
         echo 'invalid arguments, check inside' $0 'file'
     ;;
