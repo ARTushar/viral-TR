@@ -27,6 +27,20 @@ case $1 in
         echo 'running aggregator'
         python3 utils/tb_aggregator.py -d 'lightning_logs/*' -o 'lightning_logs/test_aggr'
     ;;
+    r)
+        case $3 in
+        '')
+            echo 'enter fold count & version number'
+            exit
+        ;;
+        *)
+            for folder in $(find $2_fold_lightning_logs -type d -name 'version_'$3); do
+                echo $folder
+                # rm -rf $folder
+            done
+        ;;
+        esac
+    ;;
     *)
         echo 'invalid arguments, check inside' $0 'file'
     ;;

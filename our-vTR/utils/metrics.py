@@ -46,16 +46,16 @@ def log_metrics(logs: Dict) -> None:
         'results-' + date.today().strftime('%d-%m-%Y') + '.csv'
     )
     file_exists = os.path.isfile(log_file)
-    f = open(log_file, 'a')
 
-    headers = list(logs.keys())
+    with open(log_file, 'a') as f:
+        headers = list(logs.keys())
 
-    dictWriter = csv.DictWriter(f, fieldnames=headers)
-    if not file_exists:
-        dictWriter.writeheader()
+        dictWriter = csv.DictWriter(f, fieldnames=headers)
+        if not file_exists:
+            dictWriter.writeheader()
 
+        dictWriter.writerow(logs)
 
-    dictWriter.writerow(logs)
 
 if __name__ == '__main__':
     d = {"ami": 2, "atumi": 1}

@@ -197,6 +197,8 @@ class CV:
             # Fit:
             trainer.fit(_model, train_loader, val_loader)
 
+            trainer.logger.experiment.flush()
+
             self.versions.append(trainer.logger.version)
 
             for metrics in find_metrics(_model, trainer, train_test_loader, val_test_loader):
@@ -225,7 +227,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         batch_size=params['batch_size'],
         n_splits=params['n_splits'],
         stratify=params['stratify'],
-        # num_workers=2
+        num_workers=2
     )
 
     trainer_kwargs_ = {
@@ -234,8 +236,8 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'num_sanity_val_steps': 0,
         'max_epochs': params['epochs'],
         'deterministic': True,
-        # 'gpus': -1,
-        # 'auto_select_gpus': True
+        'gpus': -1,
+        'auto_select_gpus': True
         # 'callbacks': [model_checkpoint]
     }
 
@@ -271,8 +273,7 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
     )
 
 
-if __name__ == '__main__':
-
+def main():
     params = json.load(open('parameters.json'))
 
     # model_checkpoint = ModelCheckpoint(dirpath=MODEL_CHECKPOINT_DIR_PATH,
@@ -281,4 +282,20 @@ if __name__ == '__main__':
     #                                    mode='max',
     #                                    filename='custom_model_{epoch}',)
 
-    run_cv(params, seed=738)
+    run_cv(params, 410)
+
+
+def aggregate():
+    params = json.load(open('parameters.json'))
+    k = params['n_splits']
+    log_dir = os.path.join(f'{k}_fold_lightning_logs', params['data_dir'])
+    version = 2
+    write_reduced_tb_events(
+        os.path.join(log_dir, 'fold_*', 'version_' + str(version)),
+        os.path.join(log_dir, 'average', 'version_' + str(version))
+    )
+
+
+if __name__ == '__main__':
+    main()
+    # aggregate()
