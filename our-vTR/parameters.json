@@ -2,7 +2,7 @@
     "data_dir": "dataset1",
     "sequence_file": "SRR3101734_seq.fa",
     "label_file": "SRR3101734_out.dat",
-    "n_splits": 2,
+    "n_splits": 10,
     "stratify": true,
     "convolution_type": "custom",
     "kernel_size": 12,

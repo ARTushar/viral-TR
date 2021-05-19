@@ -10,6 +10,7 @@ from typing import Dict, List, Union, Optional, Callable, Tuple
 from sklearn.model_selection import KFold, StratifiedKFold
 from torch.utils import data
 from torch.utils.data import ConcatDataset, Subset, DataLoader
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer, LightningModule
@@ -184,6 +185,7 @@ class CV:
             _model = deepcopy(model)
             trainer = Trainer(
                 logger=TensorBoardLogger(save_dir=self.log_dir, name=f'fold_{fold_idx}'),
+                # callbacks=[EarlyStopping(monitor='valLoss', verbose=True)],
                 *self.trainer_args,
                 **self.trainer_kwargs
             )
