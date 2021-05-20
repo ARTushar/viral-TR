@@ -1,0 +1,2 @@
+version,seed,n_splits,stratify,convolution_type,kernel_size,kernel_count,alpha,beta,distribution,linear_layer_shapes,l1_lambda,l2_lambda,batch_size,epochs,learning_rate,trainLoss,trainAUROC,trainAccuracy,trainF1,valLoss,valAUROC,valAccuracy,valF1
+0,697,10,True,regular,12,128,10,0.1,"[0.3, 0.2, 0.2, 0.3]",[32],0.001,0,64,30,0.001,0.245221871137619,0.9958558559417725,0.9592447221279145,0.9591308057308197,0.5562371969223022,0.8626522779464721,0.7806720435619354,0.7793484449386596

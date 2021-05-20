@@ -13,13 +13,13 @@ from torch.utils.data.dataset import ConcatDataset
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
 from utils.transforms import transform_all_labels, transform_all_sequences
-from utils.metric_namer import change_keys
+from utils.metrics import change_keys
 
 SEED = 70
 
 
 def train(params: Dict) -> None:
-    pl.seed_everything(SEED)
+    pl.seed_everything(SEED, workers=True)
     data_module = SequenceDataModule(
         params["data_dir"],
         params["sequence_file"],
@@ -30,8 +30,9 @@ def train(params: Dict) -> None:
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
-    trainer = pl.Trainer(
-        max_epochs=params['epochs'], deterministic=True, gpus=-1, auto_select_gpus=True)
+    # trainer = pl.Trainer(
+    #     max_epochs=params['epochs'], deterministic=True, gpus=-1, auto_select_gpus=True)
+    trainer = pl.Trainer(max_epochs=params['epochs'], deterministic=True)
 
     model = SimpleModel(
         convolution_type=params['convolution_type'],

@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Dict, Tuple, List
 
 import pytorch_lightning as pl
 import torch
@@ -6,10 +6,11 @@ from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.optimizer import Optimizer
-from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall
+from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall, AUROC
 from torchmetrics.functional import auroc
 
 from CustomConv1d import CustomConv1d
+from utils.motif import make_motif
 
 # from torchviz import make_dot
 
@@ -84,8 +85,8 @@ class SimpleModel(pl.LightningModule):
         ], prefix='val')
         self.test_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2, average='macro')
-            # F1(num_classes=2)
+            F1(num_classes=2, average='macro'),
+            # AUROC(num_classes=2) # macro
         ], prefix='test')
 
     def forward(self, x_fw: Tensor, x_rv: Tensor) -> Tensor:
@@ -122,8 +123,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.train_metrics(logits, y.type(torch.int))
 
-        self.log('trainLoss', loss, prog_bar=False)
-        self.log_dict(metrics, prog_bar=True)
+        self.log('trainLoss', loss, on_epoch=True, on_step=False, prog_bar=False)
+        self.log_dict(metrics, on_epoch=True, on_step=False, prog_bar=True)
 
         return loss
 
@@ -134,8 +135,8 @@ class SimpleModel(pl.LightningModule):
 
         metrics = self.valid_metrics(logits, y.type(torch.int))
 
-        self.log('valLoss', loss, prog_bar=True)
-        self.log_dict(metrics, prog_bar=True)
+        self.log('valLoss', loss, on_epoch=True, on_step=False, prog_bar=True)
+        self.log_dict(metrics, on_epoch=True, on_step=False, prog_bar=True)
 
     def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
         X_fw, X_rv, y = test_batch
@@ -162,8 +163,12 @@ class SimpleModel(pl.LightningModule):
         )
         # reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linears[2].parameters())
         return bce_loss + reg_loss
-    
-    
+
+    def get_motif(self) -> List[str]:
+        kernel_list = self.conv1d.weight
+        if self.conv1d is CustomConv1d:
+            kernel_list = self.conv1d.get_weight()
+        return [make_motif(kernel) for kernel in kernel_list]
 
 
 def main():

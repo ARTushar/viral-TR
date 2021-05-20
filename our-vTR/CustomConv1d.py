@@ -1,7 +1,8 @@
-from typing import Tuple
+from typing import Iterator, Tuple
 
 import torch
 from torch import Tensor, nn
+from torch.nn.parameter import Parameter
 
 
 class CustomConv1d(nn.Conv1d):
@@ -55,5 +56,5 @@ class CustomConv1d(nn.Conv1d):
         es_log = torch.log(exp_sum)
         return self.beta * (ax_sub_axmx - es_log - self.distr_log)
 
-
-
+    def get_weight(self) -> Tensor:
+        return torch.stack([self.calculate(w) for w in self.weight])
