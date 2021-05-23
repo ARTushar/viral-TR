@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Union
 
 import pytorch_lightning as pl
 import torch
@@ -29,6 +29,7 @@ class SimpleModel(pl.LightningModule):
         linear_layer_shapes: List[int],
         l1_lambda: float,
         l2_lambda: float,
+        dropout_p: Union[float, None],
         lr: float,
     ) -> None:
 
@@ -65,7 +66,8 @@ class SimpleModel(pl.LightningModule):
         for in_size, out_size in zip(linear_layer_shapes, linear_layer_shapes[1:]):
             linears.append(nn.Linear(in_features=in_size, out_features=out_size))
             linears.append(nn.ReLU())
-            linears.append(nn.Dropout(p=0.5))
+            if dropout_p is not None:
+                linears.append(nn.Dropout(p=dropout_p))
         
         # final layer before prediction, no relu after this, only softmax
         linears.append(nn.Linear(in_features=linear_layer_shapes[-1], out_features=2))
@@ -184,6 +186,7 @@ def main():
         linear_layer_shapes=[32],
         l1_lambda=1e-3,
         l2_lambda=0,
+        dropout_p=None,
         lr=1e-3
     )
     ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
