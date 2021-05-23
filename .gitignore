@@ -12,7 +12,7 @@ pyrightconfig.json
 .history/
 
 # lightning logs
-*/lightning_logs
+*/*lightning_logs
 
 # dataset
 
