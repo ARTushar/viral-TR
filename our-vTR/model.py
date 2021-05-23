@@ -85,7 +85,7 @@ class SimpleModel(pl.LightningModule):
         ], prefix='val')
         self.test_metrics = MetricCollection([
             Accuracy(),
-            F1(num_classes=2, average='macro'),
+            # F1(num_classes=2, average='macro'),
             # AUROC(num_classes=2) # macro
         ], prefix='test')
 
@@ -164,11 +164,11 @@ class SimpleModel(pl.LightningModule):
         # reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linears[2].parameters())
         return bce_loss + reg_loss
 
-    def get_motif(self) -> List[str]:
-        kernel_list = self.conv1d.weight
-        if self.conv1d is CustomConv1d:
-            kernel_list = self.conv1d.get_weight()
-        return [make_motif(kernel) for kernel in kernel_list]
+    # def get_motif(self) -> List[str]:
+    #     kernel_list = self.conv1d.weight
+    #     if self.conv1d is CustomConv1d:
+    #         kernel_list = self.conv1d.get_weight()
+    #     return [make_motif(kernel) for kernel in kernel_list]
 
 
 def main():

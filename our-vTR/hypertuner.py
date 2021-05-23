@@ -51,5 +51,5 @@ for dataset in parameters["datasets"]:
                                     "n_splits": parameters['n_splits'],
                                     "stratify": parameters['stratify']
                                 }
-                                # train(params)
-                                run_cv(params)
+                                train(params)
+                                # run_cv(params)

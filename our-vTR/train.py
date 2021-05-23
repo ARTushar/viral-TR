@@ -2,6 +2,7 @@ import json
 import os
 import csv
 import time
+import random
 from datetime import date
 from argparse import ArgumentParser, Namespace
 from typing import Dict
@@ -15,7 +16,7 @@ from model import SimpleModel
 from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 
-SEED = 70
+SEED = random.randint(0, 999)
 
 
 def train(params: Dict) -> None:
@@ -30,9 +31,9 @@ def train(params: Dict) -> None:
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
-    trainer = pl.Trainer(
-        max_epochs=params['epochs'], deterministic=True, gpus=-1, auto_select_gpus=True)
-    # trainer = pl.Trainer(max_epochs=params['epochs'], deterministic=True)
+    # trainer = pl.Trainer(
+    #     max_epochs=params['epochs'], deterministic=True, gpus=-1, auto_select_gpus=True)
+    trainer = pl.Trainer(max_epochs=params['epochs'], deterministic=True)
 
     model = SimpleModel(
         convolution_type=params['convolution_type'],
@@ -80,13 +81,24 @@ def train(params: Dict) -> None:
     change_keys(val_metrics, 'val', 'test')
     change_keys(both_metrics, 'both', 'test')
 
-    log_dir = 'params_log'
+    version = trainer.logger.version
+    extra = {
+        'device': 'redwan-pc',
+        'version': version,
+        'seed': SEED
+    }
+
+    log_dir = os.path.join('params_log', params['data_dir'])
+
+    del params['data_dir']
+    del params['sequence_file']
+    del params['label_file']
 
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
 
     log_file = os.path.join(log_dir, 'results-' + date.today().strftime('%d-%m-%Y') + '.csv')
-    logs = {**params, **train_metrics, **val_metrics, **both_metrics}
+    logs = {**extra, **params, **train_metrics, **val_metrics, **both_metrics}
     file_exists = os.path.isfile(log_file)
     f = open(log_file, 'a')
     dictWriter = csv.DictWriter(f, fieldnames=list(logs.keys()))
