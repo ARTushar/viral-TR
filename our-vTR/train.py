@@ -8,6 +8,8 @@ from argparse import ArgumentParser, Namespace
 from typing import Dict
 
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import early_stopping
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data.dataset import ConcatDataset
 
@@ -28,12 +30,18 @@ def train(params: Dict) -> None:
         batch_size=params['batch_size']
     )
 
+    early_stopper = EarlyStopping(monitor='valLoss', verbose=True)
+
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
-    # trainer = pl.Trainer(
-    #     max_epochs=params['epochs'], deterministic=True, gpus=-1, auto_select_gpus=True)
-    trainer = pl.Trainer(max_epochs=params['epochs'], deterministic=True)
+    trainer = pl.Trainer(
+        max_epochs=params['epochs'],
+        deterministic=True,
+        # gpus=-1,
+        # auto_select_gpus=True,
+        callbacks=[early_stopper]
+    )
 
     model = SimpleModel(
         convolution_type=params['convolution_type'],
@@ -51,6 +59,10 @@ def train(params: Dict) -> None:
     start_time = time.time()
     trainer.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
+
+    print('hello there:')
+    print(early_stopper.best_score)
+    print(early_stopper.stopped_epoch)
 
     print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(
