@@ -65,6 +65,7 @@ class SimpleModel(pl.LightningModule):
         for in_size, out_size in zip(linear_layer_shapes, linear_layer_shapes[1:]):
             linears.append(nn.Linear(in_features=in_size, out_features=out_size))
             linears.append(nn.ReLU())
+            linears.append(nn.Dropout(p=0.5))
         
         # final layer before prediction, no relu after this, only softmax
         linears.append(nn.Linear(in_features=linear_layer_shapes[-1], out_features=2))

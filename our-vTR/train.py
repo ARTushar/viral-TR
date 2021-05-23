@@ -16,7 +16,7 @@ from model import SimpleModel
 from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 
-SEED = random.randint(0, 999)
+SEED = 0
 
 
 def train(params: Dict) -> None:
