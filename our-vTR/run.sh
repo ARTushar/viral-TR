@@ -17,6 +17,10 @@ case $1 in
             echo 'enter fold count'
             exit
         ;;
+        'n')
+            echo 'running tensorboard'
+            python3 -m tensorboard.main --logdir lightning_logs
+        ;;
         *)
             echo 'running tensorboard'
             python3 -m tensorboard.main --logdir $2_fold_lightning_logs/dataset1
