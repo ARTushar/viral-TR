@@ -38,8 +38,8 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        gpus=-1,
-        auto_select_gpus=True,
+        # gpus=-1,
+        # auto_select_gpus=True,
         callbacks=[early_stopper]
     )
 
@@ -104,6 +104,8 @@ def train(params: Dict) -> None:
     del params['data_dir']
     del params['sequence_file']
     del params['label_file']
+    del params['n_splits']
+    del params['stratify']
 
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)

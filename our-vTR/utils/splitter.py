@@ -75,5 +75,60 @@ def read_samples(sequence_file, label_file):
 
     return sequences, labels
 
+
+def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
+    random.seed(0)
+
+    seqs = dict()
+    labels = []
+
+    raw_dir_in = os.path.join(directory, 'raw', raw_in)
+    raw_dir_out = os.path.join(directory, 'raw', raw_out)
+
+    train_dir = os.path.join(directory, 'train')
+    cv_dir = os.path.join(directory, 'cv')
+    test_dir = os.path.join(directory, 'test')
+
+    if not os.path.isdir(train_dir):
+        os.mkdir(train_dir)
+    if not os.path.isdir(cv_dir):
+        os.mkdir(cv_dir)
+    if not os.path.isdir(test_dir):
+        os.mkdir(test_dir)
+
+    with open(raw_dir_in, 'r') as fi, open(raw_dir_out, 'r') as fo:
+        while True:
+            name = fi.readline()
+            seq = fi.readline()
+            label = fo.readline()
+            if not name: break
+            chrom = name.split('_')[0][1:]
+            if chrom not in seqs:
+                seqs[chrom] = []
+            seqs[chrom].append((seq, label))
+
+    train_together, val_together, test_together = [], [], []
+
+    for key, data in seqs.items():
+        random.shuffle(data)
+
+        train_split = math.floor(0.8 * len(data))
+        val_split = math.floor(0.1 * len(data))
+
+        train_together += data[0: train_split]
+        val_together += data[train_split: train_split+val_split]
+        test_together += data[train_split+val_split: -1]
+
+    files = [
+        ('train', train_together),
+        ('cv', val_together),
+        ('test', test_together)
+    ]
+
+    for data_type, samples in files:
+        write_samples(directory, data_type, raw_in, raw_out, samples)
+
+
 if __name__ == '__main__':
-    splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
