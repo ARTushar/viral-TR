@@ -30,7 +30,8 @@ def train(params: Dict) -> None:
         batch_size=params['batch_size']
     )
 
-    early_stopper = EarlyStopping(monitor='valLoss')
+    # early_stopper = EarlyStopping(monitor='valLoss')
+    early_stopper = EarlyStopping(monitor='valLoss', mode='min', verbose=True)
 
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
@@ -50,6 +51,7 @@ def train(params: Dict) -> None:
         alpha=params['alpha'],
         beta=params['beta'],
         distribution=tuple(params['distribution']),
+        pool_type=params['pool_type'],
         linear_layer_shapes=list(params['linear_layer_shapes']),
         l1_lambda=params['l1_lambda'],
         l2_lambda=params['l2_lambda'],
@@ -61,7 +63,12 @@ def train(params: Dict) -> None:
     trainer.fit(model, datamodule=data_module)
     print(f'\n---- {time.time() - start_time} seconds ----\n\n\n')
 
-    params['epochs'] = early_stopper.stopped_epoch - early_stopper.patience
+    epochs = early_stopper.stopped_epoch - early_stopper.patience
+    if early_stopper.stopped_epoch == 0:
+        epochs = - params['epochs']
+    params['epochs'] = epochs
+    params['early_stopping_criteria'] = early_stopper.monitor
+    params['best_score'] = float(early_stopper.best_score)
 
     print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(

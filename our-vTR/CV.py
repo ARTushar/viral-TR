@@ -255,9 +255,11 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         alpha=params['alpha'],
         beta=params['beta'],
         distribution=tuple(params['distribution']),
+        pool_type='max',
         linear_layer_shapes=list(params['linear_layer_shapes']),
         l1_lambda=params['l1_lambda'],
         l2_lambda=params['l2_lambda'],
+        dropout_p=None,
         lr=params['learning_rate'],
     )
 

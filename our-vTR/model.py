@@ -25,6 +25,7 @@ class SimpleModel(pl.LightningModule):
         kernel_count: int,
         alpha: float,
         beta: float,
+        pool_type: str,
         distribution: Tuple[float, ...],
         linear_layer_shapes: List[int],
         l1_lambda: float,
@@ -34,6 +35,7 @@ class SimpleModel(pl.LightningModule):
     ) -> None:
 
         super().__init__()
+        self.pool_type = pool_type
         self.l1_lambda = l1_lambda
         self.l2_lambda = l2_lambda
         self.lr = lr
@@ -98,9 +100,12 @@ class SimpleModel(pl.LightningModule):
         conv_fw = self.conv1d(x_fw)
         conv_rv = self.conv1d(x_rv)
         merged = torch.cat((conv_fw, conv_rv), dim=2)
-        max_pooled = F.max_pool1d(
-            merged, kernel_size=2*(seq_length-self.conv1d.kernel_size[0]+1))
-        flat = max_pooled.flatten(1, -1)
+        pooled = None
+        if self.pool_type == 'max':
+            pooled = F.max_pool1d(merged, kernel_size=2*(seq_length-self.conv1d.kernel_size[0]+1))
+        elif self.pool_type == 'avg':
+            pooled = F.avg_pool1d(merged, kernel_size=2*(seq_length-self.conv1d.kernel_size[0]+1))
+        flat = pooled.flatten(1, -1)
         line = self.linears(flat)
         probs = F.softmax(line, dim=1)
 
@@ -108,7 +113,7 @@ class SimpleModel(pl.LightningModule):
             print(conv_fw.shape, '-> forward conv')
             print(conv_rv.shape, '-> reverse conv')
             print(merged.shape, '-> concat')
-            print(max_pooled.shape, '-> max pool')
+            print(pooled.shape, f'-> {self.pool_type} pool')
             print(flat.shape, '-> flatten')
             for layer in self.linears:
                 print(layer)
@@ -184,6 +189,7 @@ def main():
         beta=1/1000,
         distribution=(0.3, 0.2, 0.2, 0.3),
         linear_layer_shapes=[32],
+        pool_type='max',
         l1_lambda=1e-3,
         l2_lambda=0,
         dropout_p=None,
