@@ -31,7 +31,7 @@ def train(params: Dict) -> None:
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
-    early_stopper = EarlyStopping(monitor='valLoss', mode='min', verbose=True)
+    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=10)
 
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
@@ -39,8 +39,8 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        # gpus=-1,
-        # auto_select_gpus=True,
+        gpus=-1,
+        auto_select_gpus=True,
         callbacks=[early_stopper]
     )
 
@@ -101,7 +101,7 @@ def train(params: Dict) -> None:
 
     version = trainer.logger.version
     extra = {
-        'device': 'redwan-pc',
+        'device': 'redwan-colab',
         'version': version,
         'seed': SEED
     }
@@ -111,8 +111,10 @@ def train(params: Dict) -> None:
     del params['data_dir']
     del params['sequence_file']
     del params['label_file']
-    del params['n_splits']
-    del params['stratify']
+    if 'n_splits' in params:
+        del params['n_splits']
+    if 'stratify' in params:
+        del params['stratify']
 
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
