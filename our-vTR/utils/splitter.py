@@ -131,4 +131,6 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
 
 if __name__ == '__main__':
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
-    chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
+    splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')

@@ -13,6 +13,7 @@ pyrightconfig.json
 
 # lightning logs
 */*lightning_logs*
+*/*logos*
 
 # dataset
 

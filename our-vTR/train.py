@@ -15,10 +15,11 @@ from torch.utils.data.dataset import ConcatDataset
 
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
+from utils.motif import make_motif
 from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 
-SEED = 0
+SEED = 70
 
 
 def train(params: Dict) -> None:
@@ -41,7 +42,7 @@ def train(params: Dict) -> None:
         deterministic=True,
         gpus=-1,
         auto_select_gpus=True,
-        callbacks=[early_stopper]
+        # callbacks=[early_stopper]
     )
 
     model = SimpleModel(
@@ -107,6 +108,7 @@ def train(params: Dict) -> None:
     }
 
     log_dir = os.path.join('params_log', params['data_dir'])
+    logo_dir = os.path.join('logos', params['data_dir'], str(version))
 
     del params['data_dir']
     del params['sequence_file']
@@ -116,8 +118,12 @@ def train(params: Dict) -> None:
     if 'stratify' in params:
         del params['stratify']
 
+    if not os.path.isdir(logo_dir):
+        os.makedirs(logo_dir)
+    make_motif(logo_dir, model.get_kernerls())
+
     if not os.path.isdir(log_dir):
-        os.mkdir(log_dir)
+        os.makedirs(log_dir)
 
     log_file = os.path.join(log_dir, 'results-' + date.today().strftime('%d-%m-%Y') + '.csv')
     logs = {**extra, **params, **train_metrics, **val_metrics, **both_metrics}
