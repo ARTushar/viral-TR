@@ -12,7 +12,7 @@ from torch.utils.data.dataset import ConcatDataset
 from utils.splitter import read_samples, splitter
 from utils.transforms import transform_all_labels, transform_all_sequences
 
-WORKERS = 2
+WORKERS = 4
 
 
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)

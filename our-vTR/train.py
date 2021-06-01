@@ -40,8 +40,8 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        gpus=-1,
-        auto_select_gpus=True,
+        # gpus=-1,
+        # auto_select_gpus=True,
         # callbacks=[early_stopper]
     )
 
@@ -120,7 +120,7 @@ def train(params: Dict) -> None:
 
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
-    make_motif(logo_dir, model.get_kernerls())
+    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
