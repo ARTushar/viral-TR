@@ -58,5 +58,5 @@ if __name__ == '__main__':
         [0, 0, .5, 0, 0, 0],
         [0, .33, .17, .17, .17, .33]
     ]])
-    # make_motif('logos/', test)
-    make_motif('logos/', torch.randn(3, 4, 12), [.3, .2, .2, .3])
+    make_motif('logos/', test, [.3, .2, .2, .3])
+    # make_motif('logos/', torch.randn(3, 4, 12), [.3, .2, .2, .3])
