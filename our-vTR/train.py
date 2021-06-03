@@ -15,7 +15,7 @@ from torch.utils.data.dataset import ConcatDataset
 
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
-from utils.motif import make_motif
+# from utils.motif import make_motif
 from utils.splitter import read_samples
 from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
