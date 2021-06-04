@@ -15,7 +15,7 @@ from torch.utils.data.dataset import ConcatDataset
 
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
-# from utils.motif import make_motif
+from utils.motif import make_motif
 from utils.splitter import read_samples
 from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
@@ -42,8 +42,8 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        # gpus=-1,
-        # auto_select_gpus=True,
+        gpus=-1,
+        auto_select_gpus=True,
         # callbacks=[early_stopper]
     )
 
@@ -112,7 +112,7 @@ def train(params: Dict) -> None:
 
     version = trainer.logger.version
     extra = {
-        'device': 'redwan-pc',
+        'device': 'redwan-colab',
         'version': version,
         'seed': SEED
     }
@@ -137,9 +137,9 @@ def train(params: Dict) -> None:
     if 'stratify' in params:
         del params['stratify']
 
-    # if not os.path.isdir(logo_dir):
-    #     os.makedirs(logo_dir)
-    # make_motif(logo_dir, model.get_kernerls(), params['distribution'])
+    if not os.path.isdir(logo_dir):
+        os.makedirs(logo_dir)
+    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
