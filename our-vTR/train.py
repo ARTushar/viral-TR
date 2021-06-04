@@ -80,7 +80,7 @@ def train(params: Dict) -> None:
         params['label_file'],
         batch_size=512,
         for_test='train'
-    ))[0]
+    ), verbose=False)[0]
     print('\n*** *** *** for val *** *** ***')
     val_metrics = trainer.test(model, datamodule=SequenceDataModule(
         params['data_dir'],
@@ -88,19 +88,22 @@ def train(params: Dict) -> None:
         params['label_file'],
         batch_size=512,
         for_test='val'
-    ))[0]
-    print('\n*** *** *** for train+val *** *** ***')
-    both_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        params['data_dir'],
-        params['sequence_file'],
-        params['label_file'],
-        batch_size=512,
-        for_test='both'
-    ))[0]
+    ), verbose=False)[0]
+    # print('\n*** *** *** for train+val *** *** ***')
+    # both_metrics = trainer.test(model, datamodule=SequenceDataModule(
+    #     params['data_dir'],
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test='both'
+    # ), verbose=False)[0]
 
     change_keys(train_metrics, 'train', 'test')
     change_keys(val_metrics, 'val', 'test')
-    change_keys(both_metrics, 'both', 'test')
+    # change_keys(both_metrics, 'both', 'test')
+
+    print(json.dumps(train_metrics, indent=4))
+    print(json.dumps(val_metrics, indent=4))
 
     train_in = os.path.join(params['data_dir'], 'train', params['sequence_file'])
     train_out = os.path.join(params['data_dir'], 'train', params['label_file'])
@@ -145,7 +148,7 @@ def train(params: Dict) -> None:
         os.makedirs(log_dir)
 
     log_file = os.path.join(log_dir, 'results-' + date.today().strftime('%d-%m-%Y') + '.csv')
-    logs = {**extra, **params, **train_metrics, **val_metrics, **both_metrics}
+    logs = {**extra, **params, **train_metrics, **val_metrics}
     file_exists = os.path.isfile(log_file)
     f = open(log_file, 'a')
     dictWriter = csv.DictWriter(f, fieldnames=list(logs.keys()))
