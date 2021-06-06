@@ -35,7 +35,7 @@ def calc_metrics( model: pl.LightningModule, in_file: str, out_file: str) -> Dic
         'fn': 0,
     }
 
-    for chrom, pred, label in zip(chroms, preds, labels):
+    for chrom, pred, label, seq in zip(chroms, preds, labels, seqs):
 
         chrom_name = chrom.split('_')[0][1:] 
         if chrom_name not in per_chrom:
@@ -52,20 +52,20 @@ def calc_metrics( model: pl.LightningModule, in_file: str, out_file: str) -> Dic
             if pred == 1:
                 whole['tp'] += 1
                 cur_chrom['tp'] += 1
-                tps.append(chrom)
+                tps.append(seq)
             else:
                 whole['tn'] += 1
                 cur_chrom['tn'] += 1
-                tns.append(chrom)
+                tns.append(seq)
         else:
             if pred == 1:
                 whole['fp'] += 1
                 cur_chrom['fp'] += 1
-                fps.append(chrom)
+                fps.append(seq)
             else:
                 whole['fn'] += 1
                 cur_chrom['fn'] += 1
-                fns.append(chrom)
+                fns.append(seq)
 
     extend(whole)
     for key in per_chrom:

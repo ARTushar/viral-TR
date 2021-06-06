@@ -21,7 +21,7 @@ from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 from utils.predictor import calc_metrics
 
-SEED = 70
+SEED = random.randint(0, 100)
 
 
 def train(params: Dict) -> None:
@@ -42,8 +42,8 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        gpus=-1,
-        auto_select_gpus=True,
+        # gpus=-1,
+        # auto_select_gpus=True,
         # callbacks=[early_stopper]
     )
 
@@ -142,7 +142,7 @@ def train(params: Dict) -> None:
 
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
-    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
+    make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

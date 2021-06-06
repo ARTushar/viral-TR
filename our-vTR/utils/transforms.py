@@ -13,7 +13,7 @@ mapping = {
 }
 
 def reverse_compliment(sequence: str) -> str:
-    return ''.join(mapping[c] for c in sequence)
+    return ''.join(mapping[c] for c in reversed(sequence))
 
 
 def transform_sequence(sequence: str, max_len: int = None) -> Tensor:

@@ -122,8 +122,8 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
     for key, data in seqs.items():
         random.shuffle(data)
 
-        train_split = math.floor(0.8 * len(data))
-        val_split = math.floor(0.1 * len(data))
+        train_split = math.floor(0.7 * len(data))
+        val_split = math.floor(0.3 * len(data))
 
         train_together += data[0: train_split]
         val_together += data[train_split: train_split+val_split]
@@ -143,5 +143,6 @@ if __name__ == '__main__':
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
-    splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
+    # splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
     # splitter('dataset1_dummy', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    splitter('dataset_test', 'seq.fa', 'out.dat')

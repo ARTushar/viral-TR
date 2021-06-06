@@ -160,7 +160,7 @@ class SimpleModel(pl.LightningModule):
     def configure_optimizers(self) -> Optimizer:
         parameters = self.parameters()
         trainable_parameters = filter(lambda p: p.requires_grad, parameters)
-        optimizer = torch.optim.Adam(
+        optimizer = torch.optim.RMSprop(
             trainable_parameters, lr=self.lr, weight_decay=self.l2_lambda)
         return optimizer
 
@@ -174,13 +174,12 @@ class SimpleModel(pl.LightningModule):
 
     def get_kernerls(self) -> Tensor:
         kernels = self.conv1d.weight
-        if self.conv1d is CustomConv1d:
-            kernels = self.conv1d.get_weight()
+        # if self.conv1d is CustomConv1d:
+        #     kernels = self.conv1d.get_weight()
         return kernels
 
 
 def main():
-    # PRINT = True
     model = SimpleModel(
         convolution_type='custom',
         kernel_size=12,
