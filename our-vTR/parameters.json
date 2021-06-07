@@ -1,5 +1,5 @@
 {
-    "data_dir": "dataset1_dummy",
+    "data_dir": "dataset1_new",
     "sequence_file": "SRR3101734_seq.fa",
     "label_file": "SRR3101734_out.dat",
     "distribution": [0.3, 0.2, 0.2, 0.3],
