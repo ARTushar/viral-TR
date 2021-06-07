@@ -22,6 +22,7 @@ from utils.metrics import change_keys
 from utils.predictor import calc_metrics
 
 SEED = random.randint(0, 100)
+# SEED = 63
 
 
 def train(params: Dict) -> None:
@@ -34,7 +35,7 @@ def train(params: Dict) -> None:
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
-    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=10)
+    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=50)
 
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
@@ -42,9 +43,9 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        # gpus=-1,
-        # auto_select_gpus=True,
-        # callbacks=[early_stopper]
+        gpus=-1,
+        auto_select_gpus=True,
+        callbacks=[early_stopper]
     )
 
     model = SimpleModel(
@@ -142,7 +143,13 @@ def train(params: Dict) -> None:
 
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
-    make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
+
+    make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=1)
+
+    # logo_dir += '_u'
+    # if not os.path.isdir(logo_dir):
+    #     os.makedirs(logo_dir)
+    # make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
