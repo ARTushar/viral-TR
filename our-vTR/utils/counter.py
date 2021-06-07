@@ -1,6 +1,3 @@
-import re
-
-
 def count(fa_file):
     pos, neg = dict(), dict()
     with open(fa_file) as f:

@@ -1,6 +1,7 @@
 import math
 import os
 import random
+from typing import Tuple
 
 from torch.functional import split
 
@@ -9,9 +10,10 @@ def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, sampl
     type_in = os.path.join(directory, sample_type, raw_in)
     type_out = os.path.join(directory, sample_type, raw_out)
     with open(type_in, 'w') as fi, open(type_out, 'w') as fo:
-        for sample in samples:
-            fi.write(sample[0])
-            fo.write(sample[1])
+        for (chrom, seq), label in samples:
+            fi.write(chrom)
+            fi.write(seq)
+            fo.write(label)
 
 
 def splitter(directory:str, raw_in:str, raw_out:str) -> None:
@@ -34,10 +36,11 @@ def splitter(directory:str, raw_in:str, raw_out:str) -> None:
         os.mkdir(test_dir)
 
     with open(raw_dir_in, 'r') as fi:
-        for line in fi:
-            line = line.upper()
-            if line[0] != '>':
-                all_seqs.append(line)
+        while True:
+            chrom = fi.readline()
+            if not chrom: break
+            seq = fi.readline().upper()
+            all_seqs.append((chrom, seq))
 
     all_labels = []
     with open(raw_dir_out, 'r') as fo:
@@ -63,17 +66,24 @@ def splitter(directory:str, raw_in:str, raw_out:str) -> None:
         write_samples(directory, data_type, raw_in, raw_out, samples)
 
 
-def read_samples(sequence_file, label_file):
+def read_samples(sequence_file, label_file, keep_chrom: bool = False) -> Tuple:
+    chroms = []
     sequences = []
     labels = []
 
     with open(sequence_file, 'r') as ifile:
-        sequences = [line.strip() for line in ifile.readlines()]
+        while True:
+            chrom = ifile.readline()
+            if not chrom: break
+            seq = ifile.readline()
+            if keep_chrom:
+                chroms.append(chrom.strip())
+            sequences.append(seq.strip())
     
     with open(label_file, 'r') as ofile:
         labels = [line.strip() for line in ofile.readlines()]
 
-    return sequences, labels
+    return (chroms, sequences, labels) if keep_chrom else (sequences, labels)
 
 
 def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
@@ -105,15 +115,15 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
             chrom = name.split('_')[0][1:]
             if chrom not in seqs:
                 seqs[chrom] = []
-            seqs[chrom].append((seq, label))
+            seqs[chrom].append(((name, seq), label))
 
     train_together, val_together, test_together = [], [], []
 
     for key, data in seqs.items():
         random.shuffle(data)
 
-        train_split = math.floor(0.8 * len(data))
-        val_split = math.floor(0.1 * len(data))
+        train_split = math.floor(0.7 * len(data))
+        val_split = math.floor(0.3 * len(data))
 
         train_together += data[0: train_split]
         val_together += data[train_split: train_split+val_split]
@@ -133,4 +143,6 @@ if __name__ == '__main__':
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
-    splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
+    # splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
+    # splitter('dataset1_dummy', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    splitter('dataset_test', 'seq.fa', 'out.dat')

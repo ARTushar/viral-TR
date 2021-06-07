@@ -16,10 +16,12 @@ from torch.utils.data.dataset import ConcatDataset
 from dataset import CustomSequenceDataset, SequenceDataModule
 from model import SimpleModel
 from utils.motif import make_motif
+from utils.splitter import read_samples
 from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
+from utils.predictor import calc_metrics
 
-SEED = 70
+SEED = random.randint(0, 100)
 
 
 def train(params: Dict) -> None:
@@ -73,32 +75,43 @@ def train(params: Dict) -> None:
 
     print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        params["data_dir"],
-        params["sequence_file"],
-        params["label_file"],
+        params['data_dir'],
+        params['sequence_file'],
+        params['label_file'],
         batch_size=512,
         for_test='train'
-    ))[0]
+    ), verbose=False)[0]
     print('\n*** *** *** for val *** *** ***')
     val_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        params["data_dir"],
-        params["sequence_file"],
-        params["label_file"],
+        params['data_dir'],
+        params['sequence_file'],
+        params['label_file'],
         batch_size=512,
         for_test='val'
-    ))[0]
-    print('\n*** *** *** for train+val *** *** ***')
-    both_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        params["data_dir"],
-        params["sequence_file"],
-        params["label_file"],
-        batch_size=512,
-        for_test='both'
-    ))[0]
+    ), verbose=False)[0]
+    # print('\n*** *** *** for train+val *** *** ***')
+    # both_metrics = trainer.test(model, datamodule=SequenceDataModule(
+    #     params['data_dir'],
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test='both'
+    # ), verbose=False)[0]
 
     change_keys(train_metrics, 'train', 'test')
     change_keys(val_metrics, 'val', 'test')
-    change_keys(both_metrics, 'both', 'test')
+    # change_keys(both_metrics, 'both', 'test')
+
+    print(json.dumps(train_metrics, indent=4))
+    print(json.dumps(val_metrics, indent=4))
+
+    train_in = os.path.join(params['data_dir'], 'train', params['sequence_file'])
+    train_out = os.path.join(params['data_dir'], 'train', params['label_file'])
+    val_in = os.path.join(params['data_dir'], 'cv', params['sequence_file'])
+    val_out = os.path.join(params['data_dir'], 'cv', params['label_file'])
+
+    train_results = calc_metrics(model, train_in, train_out)
+    val_results = calc_metrics(model, val_in, val_out)
 
     version = trainer.logger.version
     extra = {
@@ -106,6 +119,15 @@ def train(params: Dict) -> None:
         'version': version,
         'seed': SEED
     }
+
+    json_dir = os.path.join('json_logs', 'version' + str(version))
+    if not os.path.isdir(json_dir):
+        os.makedirs(json_dir)
+
+    with open(os.path.join(json_dir, 'train.json'), 'w') as f:
+        json.dump(train_results, f, indent=4)
+    with open(os.path.join(json_dir, 'validation.json'), 'w') as f:
+        json.dump(val_results, f, indent=4)
 
     log_dir = os.path.join('params_log', params['data_dir'])
     logo_dir = os.path.join('logos', params['data_dir'], str(version))
@@ -120,13 +142,13 @@ def train(params: Dict) -> None:
 
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
-    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
+    make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
 
     log_file = os.path.join(log_dir, 'results-' + date.today().strftime('%d-%m-%Y') + '.csv')
-    logs = {**extra, **params, **train_metrics, **val_metrics, **both_metrics}
+    logs = {**extra, **params, **train_metrics, **val_metrics}
     file_exists = os.path.isfile(log_file)
     f = open(log_file, 'a')
     dictWriter = csv.DictWriter(f, fieldnames=list(logs.keys()))
@@ -141,4 +163,5 @@ if __name__ == "__main__":
     # parser = pl.Trainer.add_argparse_args(parser)
     # args = parser.parse_args()
     # args.__setattr__('max_epochs', params['epochs'])
+
     train(params)
