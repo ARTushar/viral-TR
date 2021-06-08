@@ -42,9 +42,9 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        # gpus=-1,
-        # auto_select_gpus=True,
-        # callbacks=[early_stopper]
+        gpus=-1,
+        auto_select_gpus=True,
+        callbacks=[early_stopper]
     )
 
     model = SimpleModel(
@@ -115,7 +115,7 @@ def train(params: Dict) -> None:
 
     version = trainer.logger.version
     extra = {
-        'device': 'redwan-colab',
+        'device': 'tushar-colab',
         'version': version,
         'seed': SEED
     }
@@ -142,7 +142,7 @@ def train(params: Dict) -> None:
 
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
-    make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
+    # make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

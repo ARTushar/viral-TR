@@ -4,19 +4,19 @@ from train import train
 
 parameters = {
     'datasets': [
-        ['dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
+        # ['dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
         ['dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
         # ['dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat'],
         # ['dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat']
     ],
     'convolution_type': 'custom',
-    'kernel_size': [10, 12, 14],
-    'kernel_count': [128, 256, 512],
+    'kernel_size': [12],
+    'kernel_count': [512],
     'alpha': 10,
     'beta': 1/10,
     'distribution': [0.3, 0.2, 0.2, 0.3],
     'pool_type': 'max',
-    'linear_layer_shapes': [[32], [16]],
+    'linear_layer_shapes': [[16]],
     'l1_lambda': 1e-3,
     'l2_lambda': [0],
     'dropout_p': None,
