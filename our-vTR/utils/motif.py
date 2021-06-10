@@ -1,4 +1,5 @@
 import os
+import subprocess
 from torch import Tensor, distributions
 import torch
 import torch.nn.functional as F
@@ -31,28 +32,37 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
 
 def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 1) -> None:
     for i, kernel in enumerate(kernels):
-        if i > 5: break
         prob = F.softmax(kernel, dim=0)
         debug_print('prob: ', prob)
-        if ic_type:
-            ic = calculate_shannon_ic(prob, distribution)
-        else:
-            ic = calculate_information_content(prob)
-        debug_print('IC: ', ic)
-        npa = ic.detach().cpu().numpy().T
-        df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
-        logo = lm.Logo(df)
+        meme_file = os.path.join(dir, 'meme' + str(i+1) + '.txt')
+        with open(meme_file, 'w') as f:
+            f.write('MEME version 5\n\nALPHABET= ACGT\n\n')
+            f.write('strands: + -\n\n')
+            f.write('Background letter frequencies\n')
+            f.write('A {:.3f} C {:.3f} G {:.3f} T {:.3f}\n\n'.format(*distribution))
+            f.write(f'MOTIF {i+1}\n')
+            f.write(f'letter-probability matrix: alength= {prob.shape[0]} w= {prob.shape[1]}\n')
+            for line in prob.T:
+                f.write(' {:.6f}  {:.6f}  {:.6f}  {:.6f}\n'.format(*list(map(float, line))))
+        subprocess.run(f'meme2images {meme_file} {dir} -png'.split())
+
+        # if ic_type:
+        #     ic = calculate_shannon_ic(prob, distribution)
+        # else:
+        #     ic = calculate_information_content(prob)
+        # debug_print('IC: ', ic)
+        # npa = ic.detach().cpu().numpy().T
+        # df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
+        # logo = lm.Logo(df)
         # if DEBUG:
         #     plt.show()
-        plt.savefig(os.path.join(dir, 'logo' + str(i+1) + '.png'), dpi=50)
-        plt.close()
+        # plt.savefig(os.path.join(dir, 'logo' + str(i+1) + '.png'), dpi=50)
+        # plt.close()
 
 
 if __name__ == '__main__':
-    DEBUG = True
-
-    if not os.path.isdir('logos'):
-        os.mkdir('logos')
+    # if not os.path.isdir('logos'):
+    #     os.mkdir('logos')
     test = torch.tensor([[
         [1, 0.67, 0, .83, .83, .66],
         [0, 0, .33, 0, 0, 0],
