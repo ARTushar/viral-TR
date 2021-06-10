@@ -30,10 +30,11 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
     return prob * torch.nan_to_num(torch.log2(prob / bg))
 
 
-def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 1) -> None:
+def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 0) -> None:
     for i, kernel in enumerate(kernels):
         prob = F.softmax(kernel, dim=0)
         debug_print('prob: ', prob)
+
         meme_file = os.path.join(dir, 'meme' + str(i+1) + '.txt')
         with open(meme_file, 'w') as f:
             f.write('MEME version 5\n\nALPHABET= ACGT\n\n')
@@ -44,30 +45,31 @@ def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 1) 
             f.write(f'letter-probability matrix: alength= {prob.shape[0]} w= {prob.shape[1]}\n')
             for line in prob.T:
                 f.write(' {:.6f}  {:.6f}  {:.6f}  {:.6f}\n'.format(*list(map(float, line))))
-        subprocess.run(f'meme2images {meme_file} {dir} -png'.split())
 
-        # if ic_type:
-        #     ic = calculate_shannon_ic(prob, distribution)
-        # else:
-        #     ic = calculate_information_content(prob)
-        # debug_print('IC: ', ic)
-        # npa = ic.detach().cpu().numpy().T
-        # df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
-        # logo = lm.Logo(df)
-        # if DEBUG:
-        #     plt.show()
-        # plt.savefig(os.path.join(dir, 'logo' + str(i+1) + '.png'), dpi=50)
-        # plt.close()
+        # subprocess.run(f'meme2images {meme_file} {dir} -png'.split())
+
+        if ic_type:
+            ic = calculate_shannon_ic(prob, distribution)
+        else:
+            ic = calculate_information_content(prob)
+        debug_print('IC: ', ic)
+        npa = ic.detach().cpu().numpy().T
+        df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
+        logo = lm.Logo(df)
+        if DEBUG:
+            plt.show()
+        plt.savefig(os.path.join(dir, 'logo_' + str(i+1) + '.png'), dpi=50)
+        plt.close()
 
 
 if __name__ == '__main__':
     # if not os.path.isdir('logos'):
     #     os.mkdir('logos')
     test = torch.tensor([[
-        [1, 0.67, 0, .83, .83, .66],
-        [0, 0, .33, 0, 0, 0],
-        [0, 0, .5, 0, 0, 0],
-        [0, .33, .17, .17, .17, .33]
+        [.7, .3, .3, .3, .3],
+        [.1, .2, .2, .2, .2],
+        [.1, .2, .2, .2, .2],
+        [.1, .3, .3, .3, .3]
     ]])
-    make_motif('logos/', test, [.3, .2, .2, .3])
+    make_motif('logos/', test, [.7, .1, .1, .1], ic_type=0)
     # make_motif('logos/', torch.randn(3, 4, 12), [.3, .2, .2, .3])
