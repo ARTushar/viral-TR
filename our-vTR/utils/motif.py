@@ -31,6 +31,7 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
 
 def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 1) -> None:
     for i, kernel in enumerate(kernels):
+        if i > 5: break
         prob = F.softmax(kernel, dim=0)
         debug_print('prob: ', prob)
         if ic_type:
