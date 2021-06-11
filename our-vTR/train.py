@@ -33,9 +33,10 @@ def train(params: Dict) -> None:
         params["label_file"],
         batch_size=params['batch_size']
     )
+    print(params)
 
     # early_stopper = EarlyStopping(monitor='valLoss')
-    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=50)
+    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=10)
 
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)

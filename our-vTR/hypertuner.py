@@ -5,23 +5,23 @@ from train import train
 parameters = {
     'datasets': [
         # ['dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
-        ['dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
+        ['peak_around_datasets/normal/SRR3101734', 'SRR3101734_seq.fa', 'SRR3101734_out.dat'],
         # ['dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat'],
         # ['dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat']
     ],
     'convolution_type': 'custom',
-    'kernel_size': [12],
-    'kernel_count': [512],
+    'kernel_size': [10, 12, 14],
+    'kernel_count': [128, 256, 512],
     'alpha': 10,
     'beta': 1/10,
     'distribution': [0.3, 0.2, 0.2, 0.3],
     'pool_type': 'max',
-    'linear_layer_shapes': [[16]],
+    'linear_layer_shapes': [[16], [32]],
     'l1_lambda': 1e-3,
     'l2_lambda': [0],
     'dropout_p': None,
     'batch_size': 64,
-    'epochs': 20,
+    'epochs': 50,
     'learning_rate': 1e-3,
     'stratify': True,
     'n_splits': 10

@@ -16,7 +16,7 @@ def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, sampl
             fo.write(label)
 
 
-def splitter(directory:str, raw_in:str, raw_out:str) -> None:
+def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: float = .2) -> None:
     # rand = random.Random(seed)
 
     all_seqs = []
@@ -49,8 +49,8 @@ def splitter(directory:str, raw_in:str, raw_out:str) -> None:
     all_together = list(zip(all_seqs, all_labels))
     random.shuffle(all_together)
 
-    train_split = math.floor(0.8 * len(all_together))
-    cv_split = math.floor(0.1 * len(all_together))
+    train_split = math.floor(test * len(all_together))
+    cv_split = math.floor(valid * len(all_together))
 
     train_together = all_together[0: train_split]
     cv_together = all_together[train_split: train_split+cv_split]
@@ -140,9 +140,10 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
 
 
 if __name__ == '__main__':
+    peak_dataset = 'peak_around_datasets/normal/SRR3101734'
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
     # splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
-    splitter('dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    splitter(peak_dataset, 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset_test', 'seq.fa', 'out.dat')

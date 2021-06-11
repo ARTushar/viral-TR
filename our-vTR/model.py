@@ -66,6 +66,7 @@ class SimpleModel(pl.LightningModule):
         linears = []
         # loop over consecutive pairs in list
         for in_size, out_size in zip(linear_layer_shapes, linear_layer_shapes[1:]):
+            print('in_size: ', in_size, ' out_size: ', out_size)
             linears.append(nn.Linear(in_features=in_size, out_features=out_size))
             linears.append(nn.ReLU())
             if dropout_p is not None:
@@ -73,6 +74,8 @@ class SimpleModel(pl.LightningModule):
         
         # final layer before prediction, no relu after this, only softmax
         linears.append(nn.Linear(in_features=linear_layer_shapes[-1], out_features=2))
+        print("linears: ", linears)
+        # exit(1)
 
         self.linears = nn.Sequential(*linears)
 
