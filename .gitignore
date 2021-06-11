@@ -23,3 +23,6 @@ pyrightconfig.json
 
 */processed_files/*
 !*/processed_files/tobed.sh
+
+*/device.txt
+*/saved_models/*

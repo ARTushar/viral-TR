@@ -35,6 +35,11 @@ class SimpleModel(pl.LightningModule):
     ) -> None:
 
         super().__init__()
+        self.save_hyperparameters()
+
+        # print(convolution_type, kernel_size, kernel_count, alpha, beta, pool_type,
+        #     distribution, linear_layer_shapes, l1_lambda, l2_lambda, dropout_p, lr)
+
         self.pool_type = pool_type
         self.l1_lambda = l1_lambda
         self.l2_lambda = l2_lambda
@@ -61,18 +66,19 @@ class SimpleModel(pl.LightningModule):
             print('********** unknown convolution type **********')
             exit(1)
 
-        linear_layer_shapes.insert(0, kernel_count)
+        use_shapes = [kernel_count, *linear_layer_shapes]
+        # linear_layer_shapes.insert(0, kernel_count)
 
         linears = []
         # loop over consecutive pairs in list
-        for in_size, out_size in zip(linear_layer_shapes, linear_layer_shapes[1:]):
+        for in_size, out_size in zip(use_shapes, use_shapes[1:]):
             linears.append(nn.Linear(in_features=in_size, out_features=out_size))
             linears.append(nn.ReLU())
             if dropout_p is not None:
                 linears.append(nn.Dropout(p=dropout_p))
         
         # final layer before prediction, no relu after this, only softmax
-        linears.append(nn.Linear(in_features=linear_layer_shapes[-1], out_features=2))
+        linears.append(nn.Linear(in_features=use_shapes[-1], out_features=2))
 
         self.linears = nn.Sequential(*linears)
 
@@ -172,7 +178,7 @@ class SimpleModel(pl.LightningModule):
         # reg_loss = self.l1_lambda * sum(x.abs().sum() for x in self.linears[2].parameters())
         return bce_loss + reg_loss
 
-    def get_kernerls(self) -> Tensor:
+    def get_kernels(self) -> Tensor:
         kernels = self.conv1d.weight
         # if self.conv1d is CustomConv1d:
         #     kernels = self.conv1d.get_weight()

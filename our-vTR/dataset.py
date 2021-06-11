@@ -12,7 +12,11 @@ from torch.utils.data.dataset import ConcatDataset
 from utils.splitter import read_samples, splitter
 from utils.transforms import transform_all_labels, transform_all_sequences
 
-WORKERS = 2
+device = ''
+with open('device.txt', 'r') as f:
+    device = f.readline().strip()
+
+WORKERS = 2 if 'colab' in device else 4
 
 
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)

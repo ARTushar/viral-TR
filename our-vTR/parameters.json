@@ -9,13 +9,13 @@
     "alpha": 10,
     "beta": 0.1,
     "learning_rate": 1e-3,
-    "epochs": 80,
+    "epochs": 50,
     "convolution_type": "custom",
     "kernel_size": 12,
     "kernel_count": 256,
     "pool_type": "max",
     "linear_layer_shapes": [32],
-    "l1_lambda": 0,
+    "l1_lambda": 1e-3,
     "l2_lambda": 0,
-    "dropout_p": 0.8
+    "dropout_p": null
 }
