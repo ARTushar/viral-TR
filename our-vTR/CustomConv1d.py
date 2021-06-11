@@ -56,5 +56,15 @@ class CustomConv1d(nn.Conv1d):
         es_log = torch.log(exp_sum)
         return self.beta * (ax_sub_axmx - es_log - self.distr_log)
 
-    def get_weight(self) -> Tensor:
-        return torch.stack([self.calculate(w) for w in self.weight])
+    def probability(self, x: Tensor) -> Tensor:
+        alpha_x = self.alpha * x
+        ax_max, _ = torch.max(alpha_x, dim=0, keepdim=True)
+        ax_sub_axmx = alpha_x - ax_max
+        exps = torch.exp(ax_sub_axmx)
+        exp_sum = torch.sum(exps, dim=0, keepdim=True)
+        return exps / exp_sum
+        # es_log = torch.log(exp_sum)
+        # return self.beta * (ax_sub_axmx - es_log - self.distr_log)
+
+    def get_probabilities(self) -> Tensor:
+        return torch.stack([self.probability(w) for w in self.weight])

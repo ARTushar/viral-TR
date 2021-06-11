@@ -30,11 +30,8 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
     return prob * torch.nan_to_num(torch.log2(prob / bg))
 
 
-def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 0) -> None:
-    for i, kernel in enumerate(kernels):
-        prob = F.softmax(kernel, dim=0)
-        debug_print('prob: ', prob)
-
+def make_motif(dir: str, probs: Tensor, distribution: list, ic_type: int = 0) -> None:
+    for i, prob in enumerate(probs):
         meme_file = os.path.join(dir, 'meme' + str(i+1) + '.txt')
         with open(meme_file, 'w') as f:
             f.write('MEME version 5\n\nALPHABET= ACGT\n\n')
@@ -61,6 +58,9 @@ def make_motif(dir: str, kernels: Tensor, distribution: list, ic_type: int = 0) 
         plt.savefig(os.path.join(dir, 'logo_' + str(i+1) + '.png'), dpi=50)
         plt.close()
 
+        print('.', end='')
+    print()
+
 
 if __name__ == '__main__':
     # if not os.path.isdir('logos'):
@@ -71,5 +71,5 @@ if __name__ == '__main__':
         [.1, .2, .2, .2, .2],
         [.1, .3, .3, .3, .3]
     ]])
-    make_motif('logos/', test, [.7, .1, .1, .1], ic_type=0)
+    make_motif('logos/', test, [.7, .1, .1, .1])
     # make_motif('logos/', torch.randn(3, 4, 12), [.3, .2, .2, .3])

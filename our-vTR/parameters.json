@@ -1,5 +1,5 @@
 {
-    "data_dir": "peak_around_datasets/normal/SRR5241430",
+    "data_dir": "dataset3",
     "sequence_file": "SRR5241430_seq.fa",
     "label_file": "SRR5241430_out.dat",
     "distribution": [0.3, 0.2, 0.2, 0.3],
@@ -15,7 +15,7 @@
     "kernel_count": 256,
     "pool_type": "max",
     "linear_layer_shapes": [32],
-    "l1_lambda": 0.0021,
+    "l1_lambda": 1e-3,
     "l2_lambda": 0,
     "dropout_p": null
 }
