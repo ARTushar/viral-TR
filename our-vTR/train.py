@@ -21,9 +21,12 @@ from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 from utils.predictor import calc_metrics
 
-SEED = random.randint(0, 100)
-# SEED = 63
+device = ''
+with open('device.txt', 'r') as f:
+    device = f.readline().strip()
 
+SEED = random.randint(0, 100)
+# SEED = 50
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -33,18 +36,21 @@ def train(params: Dict) -> None:
         params["label_file"],
         batch_size=params['batch_size']
     )
+    print(params)
 
     # early_stopper = EarlyStopping(monitor='valLoss')
-    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=50)
+    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=10)
 
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
+
+    in_colab = ('colab' in device)
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        gpus=-1,
-        auto_select_gpus=True,
+        gpus=(-1 if in_colab else None),
+        auto_select_gpus=in_colab,
         callbacks=[early_stopper]
     )
 
@@ -90,6 +96,7 @@ def train(params: Dict) -> None:
         batch_size=512,
         for_test='val'
     ), verbose=False)[0]
+
     # print('\n*** *** *** for train+val *** *** ***')
     # both_metrics = trainer.test(model, datamodule=SequenceDataModule(
     #     params['data_dir'],
@@ -116,10 +123,16 @@ def train(params: Dict) -> None:
 
     version = trainer.logger.version
     extra = {
-        'device': 'tushar-colab',
+        'device': device,
         'version': version,
         'seed': SEED
     }
+
+    model_dir = 'saved_models'
+    if not os.path.isdir(model_dir):
+        os.makedirs(model_dir)
+    saved_file = os.path.join(model_dir, f'version_{version}.ckpt')
+    trainer.save_checkpoint(saved_file)
 
     json_dir = os.path.join('json_logs', 'version' + str(version))
     if not os.path.isdir(json_dir):
@@ -144,7 +157,7 @@ def train(params: Dict) -> None:
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
 
-    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
+    make_motif(logo_dir, model.get_kernels(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
@@ -167,3 +180,4 @@ if __name__ == "__main__":
     # args.__setattr__('max_epochs', params['epochs'])
 
     train(params)
+
