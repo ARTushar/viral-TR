@@ -145,12 +145,7 @@ def train(params: Dict) -> None:
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
 
-    # make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=1)
-
-    # logo_dir += '_u'
-    # if not os.path.isdir(logo_dir):
-    #     os.makedirs(logo_dir)
-    # make_motif(logo_dir, model.get_kernerls(), params['distribution'], ic_type=0)
+    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
