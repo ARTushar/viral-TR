@@ -52,20 +52,20 @@ def calc_metrics( model: pl.LightningModule, in_file: str, out_file: str) -> Dic
             if pred == 1:
                 whole['tp'] += 1
                 cur_chrom['tp'] += 1
-                tps.append(seq)
+                tps.append(chrom)
             else:
                 whole['tn'] += 1
                 cur_chrom['tn'] += 1
-                tns.append(seq)
+                tns.append(chrom)
         else:
             if pred == 1:
                 whole['fp'] += 1
                 cur_chrom['fp'] += 1
-                fps.append(seq)
+                fps.append(chrom)
             else:
                 whole['fn'] += 1
                 cur_chrom['fn'] += 1
-                fns.append(seq)
+                fns.append(chrom)
 
     extend(whole)
     for key in per_chrom:
