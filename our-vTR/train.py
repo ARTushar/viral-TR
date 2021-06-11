@@ -22,7 +22,7 @@ from utils.metrics import change_keys
 from utils.predictor import calc_metrics
 
 SEED = random.randint(0, 100)
-# SEED = 63
+# SEED = 50
 
 
 def train(params: Dict) -> None:
@@ -145,7 +145,7 @@ def train(params: Dict) -> None:
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
 
-    make_motif(logo_dir, model.get_kernerls(), params['distribution'])
+    # make_motif(logo_dir, model.get_kernerls(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

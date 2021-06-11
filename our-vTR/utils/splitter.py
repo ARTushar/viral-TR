@@ -140,10 +140,10 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
 
 
 if __name__ == '__main__':
-    peak_dataset = 'peak_around_datasets/normal/SRR3101734'
+    peak_dataset = 'peak_around_datasets/normal/SRR5241430'
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
-    # splitter('dataset3', 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
-    splitter(peak_dataset, 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
+    splitter(peak_dataset, 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
+    # splitter(peak_dataset, 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset_test', 'seq.fa', 'out.dat')
