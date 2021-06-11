@@ -177,10 +177,9 @@ class SimpleModel(pl.LightningModule):
         return bce_loss + reg_loss
 
     def get_probabilities(self) -> Tensor:
-        kernels = F.softmax(self.conv1d.weight, dim=1)
-        if self.conv1d is CustomConv1d:
-            kernels = self.conv1d.get_probabilities()
-        return kernels
+        if hasattr(self.conv1d, 'get_probabilities'):
+            return self.conv1d.get_probabilities()
+        return F.softmax(self.conv1d.weight, dim=1)
 
 
 def main():

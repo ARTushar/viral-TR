@@ -1,11 +1,12 @@
 import os
 import subprocess
-from torch import Tensor, distributions
+from torch import Tensor
 import torch
 import torch.nn.functional as F
 import pandas as pd
 import logomaker as lm
 import matplotlib.pyplot as plt
+from progress.bar import ChargingBar
 
 li = 'ACGT'
 
@@ -31,6 +32,8 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
 
 
 def make_motif(dir: str, probs: Tensor, distribution: list, ic_type: int = 0) -> None:
+    bar = ChargingBar('Building Motifs', max=len(probs))
+
     for i, prob in enumerate(probs):
         meme_file = os.path.join(dir, 'meme' + str(i+1) + '.txt')
         with open(meme_file, 'w') as f:
@@ -53,13 +56,10 @@ def make_motif(dir: str, probs: Tensor, distribution: list, ic_type: int = 0) ->
         npa = ic.detach().cpu().numpy().T
         df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
         logo = lm.Logo(df)
-        if DEBUG:
-            plt.show()
         plt.savefig(os.path.join(dir, 'logo_' + str(i+1) + '.png'), dpi=50)
-        plt.close()
 
-        print('.', end='')
-    print()
+        bar.next()
+    bar.finish()
 
 
 if __name__ == '__main__':
