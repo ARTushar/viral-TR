@@ -10,7 +10,6 @@ from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall, AURO
 from torchmetrics.functional import auroc
 
 from CustomConv1d import CustomConv1d
-from utils.motif import make_motif
 
 # from torchviz import make_dot
 
@@ -79,7 +78,6 @@ class SimpleModel(pl.LightningModule):
         
         # final layer before prediction, no relu after this, only softmax
         linears.append(nn.Linear(in_features=use_shapes[-1], out_features=2))
-
         self.linears = nn.Sequential(*linears)
 
         # TODO: Check macro vs micro average
