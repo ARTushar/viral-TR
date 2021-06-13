@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import pandas as pd
 import logomaker as lm
 import matplotlib.pyplot as plt
-from progress.bar import ChargingBar
+from progress.bar import IncrementalBar
 
 li = 'ACGT'
 
@@ -31,11 +31,21 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
     return prob * torch.nan_to_num(torch.log2(prob / bg))
 
 
+def draw_logo(dir: str, ic: Tensor, suf: str) -> None:
+    debug_print('IC: ', ic)
+    npa = ic.detach().cpu().numpy().T
+    df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
+    logo = lm.Logo(df)
+    logo.ax.set_ylim((0, 2))
+    plt.savefig(os.path.join(dir, 'logo_' + suf + '.png'), dpi=50)
+    plt.close()
+
+
 def make_motif(dir: str, probs: Tensor, distribution: list, ic_type: int = 0) -> None:
-    bar = ChargingBar('Building Motifs', max=len(probs))
+    bar = IncrementalBar('Building Motifs', max=len(probs))
 
     for i, prob in enumerate(probs):
-        meme_file = os.path.join(dir, 'meme' + str(i+1) + '.txt')
+        meme_file = os.path.join(dir, 'motif' + str(i+1) + '.meme')
         with open(meme_file, 'w') as f:
             f.write('MEME version 5\n\nALPHABET= ACGT\n\n')
             f.write('strands: + -\n\n')
@@ -48,15 +58,13 @@ def make_motif(dir: str, probs: Tensor, distribution: list, ic_type: int = 0) ->
 
         # subprocess.run(f'meme2images {meme_file} {dir} -png'.split())
 
-        if ic_type:
-            ic = calculate_shannon_ic(prob, distribution)
-        else:
-            ic = calculate_information_content(prob)
-        debug_print('IC: ', ic)
-        npa = ic.detach().cpu().numpy().T
-        df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
-        logo = lm.Logo(df)
-        plt.savefig(os.path.join(dir, 'logo_' + str(i+1) + '.png'), dpi=50)
+        # if ic_type:
+        #     ic = calculate_shannon_ic(prob, distribution)
+        # else:
+        #     ic = calculate_information_content(prob)
+
+        draw_logo(dir, calculate_information_content(prob), str(i+1))
+        # draw_logo(dir, calculate_shannon_ic(prob, distribution), 'bg' + str(i+1))
 
         bar.next()
     bar.finish()
