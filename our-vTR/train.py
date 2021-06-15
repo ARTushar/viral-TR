@@ -26,7 +26,7 @@ with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
 # SEED = random.randint(0, 100)
-SEED = 91
+SEED = 14
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)

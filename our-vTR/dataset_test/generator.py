@@ -15,17 +15,21 @@ def random_seq() -> str:
         
 
 def label(seq: str) -> int:
+    patterns = ['AGAT', 'TCTC']
     rev = ''.join(inv[c] for c in reversed(seq))
-    return 0 if seq.find('AG') == -1 and rev.find('AG') else 1
+    for p in patterns:
+        if seq.find(p) != -1 or rev.find(p) != -1:
+            return 1
+    return 0
 
 
 with open('dataset_test/raw/seq.fa', 'w') as fi, open('dataset_test/raw/out.dat', 'w') as fo:
     random.seed(0)
     pos, neg = 0, 0
-    for _ in range(30000):
+    for _ in range(7000):
         seq = random_seq()
         y = label(seq)
-        if y == 1 and pos > 8000:
+        if y == 0 and neg >= 870:
             continue
         if y == 1: pos += 1
         else: neg += 1
