@@ -1,0 +1,3 @@
+device,version,seed,distribution,batch_size,alpha,beta,learning_rate,epochs,convolution_type,kernel_size,kernel_count,pool_type,linear_layer_shapes,l1_lambda,l2_lambda,dropout_p,early_stopping_criteria,best_score,trainLoss,trainAUROC,trainAccuracy,valLoss,valAUROC,valAccuracy
+server,6,14,"[0.3, 0.2, 0.2, 0.3]",64,10,0.1,0.001,27,custom,12,256,max,[32],0.0021,0,,valAccuracy,0.8311111330986023,0.15024548768997192,1.0,1.0,0.5357885956764221,0.911749005317688,0.8222222328186035
+server,8,14,"[0.3, 0.2, 0.2, 0.3]",64,1000,0.001,0.001,39,custom,12,256,max,[32],0.003,0,,valAccuracy,0.851111114025116,0.2295621633529663,0.9998728036880493,0.9489267468452454,0.6784356236457825,0.9130167961120605,0.7977777719497681

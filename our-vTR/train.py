@@ -38,7 +38,7 @@ def train(params: Dict) -> None:
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
-    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=100)
+    early_stopper = EarlyStopping(monitor='valAccuracy', mode='max', patience=10)
 
     # trainer = pl.Trainer.from_argparse_args(
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
@@ -131,7 +131,7 @@ def train(params: Dict) -> None:
     if not os.path.isdir(model_dir):
         os.makedirs(model_dir)
     saved_file = os.path.join(model_dir, f'version_{version}.ckpt')
-    trainer.save_checkpoint(saved_file)
+    # trainer.save_checkpoint(saved_file)
 
     json_dir = os.path.join('json_logs', 'version' + str(version))
     if not os.path.isdir(json_dir):
@@ -156,7 +156,7 @@ def train(params: Dict) -> None:
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
 
-    make_motif(logo_dir, model.get_probabilities(), params['distribution'])
+    # make_motif(logo_dir, model.get_probabilities(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

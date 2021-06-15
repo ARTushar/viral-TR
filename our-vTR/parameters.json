@@ -1,13 +1,13 @@
 {
-    "data_dir": "dataset3",
+    "data_dir": "peak_around_datasets/chrom_wise/SRR5241430",
     "sequence_file": "SRR5241430_seq.fa",
     "label_file": "SRR5241430_out.dat",
     "distribution": [0.3, 0.2, 0.2, 0.3],
     "batch_size": 64,
     "n_splits": 10,
     "stratify": true,
-    "alpha": 10,
-    "beta": 1e-1,
+    "alpha": 1000,
+    "beta": 1e-3,
     "learning_rate": 1e-3,
     "epochs": 50,
     "convolution_type": "custom",
@@ -15,7 +15,7 @@
     "kernel_count": 256,
     "pool_type": "max",
     "linear_layer_shapes": [32],
-    "l1_lambda": 1e-3,
+    "l1_lambda": 0.003,
     "l2_lambda": 0,
     "dropout_p": null
 }
