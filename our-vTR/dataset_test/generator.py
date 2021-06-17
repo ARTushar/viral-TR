@@ -26,14 +26,15 @@ def label(seq: str) -> int:
 with open('dataset_test/raw/seq.fa', 'w') as fi, open('dataset_test/raw/out.dat', 'w') as fo:
     random.seed(0)
     pos, neg = 0, 0
-    for _ in range(7000):
+    for i in range(7000):
         seq = random_seq()
         y = label(seq)
         if y == 0 and neg >= 870:
             continue
         if y == 1: pos += 1
         else: neg += 1
-        fi.write('>chr1_test_case\n')
+        type = 'pos' if y == 1 else 'neg'
+        fi.write(f'>chr1_{type}_{i}\n')
         fi.write(seq + '\n')
         fo.write(str(y) + '\n')
     print(pos, neg)
