@@ -16,7 +16,11 @@ device = ''
 with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
-WORKERS = 2 if 'colab' in device else 4
+WORKERS = 4 
+if 'colab' in device:
+    WORKERS = 2
+elif 'server' in device:
+    WORKERS = 6
 
 
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)

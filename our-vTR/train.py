@@ -44,7 +44,7 @@ def train(params: Dict) -> None:
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
 
-    in_colab = ('colab' in device)
+    in_colab = ('colab' in device or 'server' in device)
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
