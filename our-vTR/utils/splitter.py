@@ -139,11 +139,32 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
         write_samples(directory, data_type, raw_in, raw_out, samples)
 
 
+def pos_neg_splitter(in_fas, out_pos_fa, out_neg_fa):
+    with open(out_pos_fa, 'w') as fpos, open(out_neg_fa, 'w') as fneg:
+        for in_fa in in_fas:
+            with open(in_fa, 'r') as fi:
+                while True:
+                    chrom = fi.readline()
+                    if not chrom: break
+                    seq = fi.readline()
+                    if 'pos' in chrom.strip().split('_'):
+                        fpos.write(chrom)
+                        fpos.write(seq)
+                    else:
+                        fneg.write(chrom)
+                        fneg.write(seq)
+
+
 if __name__ == '__main__':
     peak_dataset = 'peak_around_datasets/normal/SRR5241430'
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
-    splitter(peak_dataset, 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
+    # splitter(peak_dataset, 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
     # splitter(peak_dataset, 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset_test', 'seq.fa', 'out.dat')
+    pos_neg_splitter(
+        ['dataset3/train/SRR5241430_seq.fa'],
+        'gkmsvm/train_valid/pos_seq.fa',
+        'gkmsvm/train_valid/neg_seq.fa'
+    )

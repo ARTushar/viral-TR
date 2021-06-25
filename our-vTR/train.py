@@ -8,6 +8,7 @@ from argparse import ArgumentParser, Namespace
 from typing import Dict
 
 import pytorch_lightning as pl
+from pytorch_lightning import loggers
 from pytorch_lightning.callbacks import early_stopping
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from torch.utils.data.dataloader import DataLoader
@@ -21,12 +22,14 @@ from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 from utils.predictor import calc_metrics
 
+GDIR = os.path.join('..', 'dirs')
+
 device = ''
 with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
 # SEED = random.randint(0, 100)
-SEED = 91
+SEED = 14
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -44,13 +47,16 @@ def train(params: Dict) -> None:
     #     args, deterministic=True, gpus=-1, auto_select_gpus=True)
     # trainer = pl.Trainer.from_argparse_args(args, deterministic=True)
 
-    in_colab = ('colab' in device)
+    in_colab = ('colab' in device or 'server' in device)
+
+    logger = loggers.TensorBoardLogger(os.path.join(GDIR, 'lightning_logs'))
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
         gpus=(-1 if in_colab else None),
         auto_select_gpus=in_colab,
-        callbacks=[early_stopper]
+        callbacks=[early_stopper],
+        logger=logger
     )
 
     model = SimpleModel(
@@ -127,13 +133,13 @@ def train(params: Dict) -> None:
         'seed': SEED
     }
 
-    model_dir = 'saved_models'
+    model_dir = os.path.join(GDIR, 'saved_models')
     if not os.path.isdir(model_dir):
         os.makedirs(model_dir)
     saved_file = os.path.join(model_dir, f'version_{version}.ckpt')
     trainer.save_checkpoint(saved_file)
 
-    json_dir = os.path.join('json_logs', 'version' + str(version))
+    json_dir = os.path.join(GDIR, 'json_logs', 'version' + str(version))
     if not os.path.isdir(json_dir):
         os.makedirs(json_dir)
 
@@ -142,8 +148,8 @@ def train(params: Dict) -> None:
     with open(os.path.join(json_dir, 'validation.json'), 'w') as f:
         json.dump(val_results, f, indent=4)
 
-    log_dir = os.path.join('params_log', params['data_dir'])
-    logo_dir = os.path.join('logos', params['data_dir'], str(version))
+    log_dir = os.path.join(GDIR, 'params_log', params['data_dir'])
+    logo_dir = os.path.join(GDIR, 'logos', params['data_dir'], str(version))
 
     del params['data_dir']
     del params['sequence_file']
@@ -178,5 +184,6 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     # args.__setattr__('max_epochs', params['epochs'])
 
+    params['data_dir'] = os.path.join(GDIR, params['data_dir'])
     train(params)
 
