@@ -12,7 +12,7 @@ li = 'ACGT'
 
 DEBUG = False
 
-def debug_print(debug_code, *args):
+def debug_print(debug_code, args):
     if DEBUG:
         print(debug_code, *args)
 
@@ -31,43 +31,43 @@ def calculate_shannon_ic(prob: Tensor, distribution: list) -> Tensor:
     return prob * torch.nan_to_num(torch.log2(prob / bg))
 
 
-def draw_logo(dir: str, ic: Tensor, suf: str) -> None:
+def draw_logo(directory: str, ic: Tensor, suf: str) -> None:
     debug_print('IC: ', ic)
     npa = ic.detach().cpu().numpy().T
     df = pd.DataFrame(npa, columns=['A', 'C', 'G', 'T'])
     logo = lm.Logo(df)
     logo.ax.set_ylim((0, 2))
-    plt.savefig(os.path.join(dir, 'logo_' + suf + '.png'), dpi=50)
+    plt.savefig(os.path.join(directory, 'logo_' + suf + '.png'), dpi=50)
     plt.close()
 
 
-def make_motif(dir: str, probs: Tensor, distribution: list, ic_type: int = 0) -> None:
+def make_motif(directory: str, probs: Tensor, distribution: list, ic_type: int = 0) -> None:
     bar = IncrementalBar('Building Motifs', max=len(probs))
 
-    for i, prob in enumerate(probs):
-        meme_file = os.path.join(dir, 'motif' + str(i+1) + '.meme')
-        with open(meme_file, 'w') as f:
-            f.write('MEME version 5\n\nALPHABET= ACGT\n\n')
-            f.write('strands: + -\n\n')
-            f.write('Background letter frequencies\n')
-            f.write('A {:.3f} C {:.3f} G {:.3f} T {:.3f}\n\n'.format(*distribution))
-            f.write(f'MOTIF {i+1}\n')
+    meme_file = os.path.join(directory, 'motif' + '.meme')
+    with open(meme_file, 'w') as f:
+        f.write('MEME version 5\n\nALPHABET= ACGT\n\n')
+        f.write('strands: + -\n\n')
+        f.write('Background letter frequencies\n')
+        f.write('A {:.3f} C {:.3f} G {:.3f} T {:.3f}\n'.format(*distribution))
+        for i, prob in enumerate(probs):
+            f.write(f'\nMOTIF {i+1}\n')
             f.write(f'letter-probability matrix: alength= {prob.shape[0]} w= {prob.shape[1]}\n')
             for line in prob.T:
                 f.write(' {:.6f}  {:.6f}  {:.6f}  {:.6f}\n'.format(*list(map(float, line))))
 
-        # subprocess.run(f'meme2images {meme_file} {dir} -png'.split())
+            # subprocess.run(f'meme2images {meme_file} {directory} -png'.split())
 
-        # if ic_type:
-        #     ic = calculate_shannon_ic(prob, distribution)
-        # else:
-        #     ic = calculate_information_content(prob)
+            # if ic_type:
+            #     ic = calculate_shannon_ic(prob, distribution)
+            # else:
+            #     ic = calculate_information_content(prob)
 
-        draw_logo(dir, calculate_information_content(prob), str(i+1))
-        # draw_logo(dir, calculate_shannon_ic(prob, distribution), 'bg' + str(i+1))
+            draw_logo(directory, calculate_information_content(prob), str(i+1))
+            # draw_logo(directory, calculate_shannon_ic(prob, distribution), 'bg' + str(i+1))
 
-        bar.next()
-    bar.finish()
+            bar.next()
+        bar.finish()
 
 
 if __name__ == '__main__':

@@ -1,2 +1,0 @@
-device,version,seed,distribution,batch_size,alpha,beta,learning_rate,epochs,convolution_type,kernel_size,kernel_count,pool_type,linear_layer_shapes,l1_lambda,l2_lambda,dropout_p,early_stopping_criteria,best_score,trainLoss,trainAUROC,trainAccuracy,valLoss,valAUROC,valAccuracy
-redwan-colab,266,70,"[0.3, 0.2, 0.2, 0.3]",64,10,0.1,0.001,-20,custom,12,256,max,[32],0.001,0,,valAccuracy,-inf,0.20911452174186707,0.99921053647995,0.9883268475532532,0.45205652713775635,0.9220385551452637,0.8169642686843872

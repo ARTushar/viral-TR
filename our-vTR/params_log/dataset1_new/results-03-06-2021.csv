@@ -1,2 +1,0 @@
-device,version,seed,distribution,batch_size,alpha,beta,learning_rate,epochs,convolution_type,kernel_size,kernel_count,pool_type,linear_layer_shapes,l1_lambda,l2_lambda,dropout_p,early_stopping_criteria,best_score,trainLoss,trainAUROC,trainAccuracy,valLoss,valAUROC,valAccuracy,bothLoss,bothAUROC,bothAccuracy
-redwan-pc,39,70,"[0.3, 0.2, 0.2, 0.3]",64,10,0.1,0.001,-20,custom,10,128,max,[32],0.001,0,,valAccuracy,-inf,0.2978012263774872,0.9811811447143555,0.9307071566581726,0.5671872496604919,0.8349218368530273,0.7421875,0.32689258456230164,0.9667702317237854,0.9102835655212402

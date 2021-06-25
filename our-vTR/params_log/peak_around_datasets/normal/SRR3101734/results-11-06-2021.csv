@@ -1,2 +1,0 @@
-device,version,seed,distribution,batch_size,alpha,beta,learning_rate,epochs,convolution_type,kernel_size,kernel_count,pool_type,linear_layer_shapes,l1_lambda,l2_lambda,dropout_p,early_stopping_criteria,best_score,trainLoss,trainAUROC,trainAccuracy,valLoss,valAUROC,valAccuracy
-tushar-colab,200,81,"[0.3, 0.2, 0.2, 0.3]",64,10,0.1,0.001,9,custom,12,128,max,[32],0.0021,0,,valAccuracy,0.8030303120613098,0.4166402220726013,0.9580816030502319,0.8676123023033142,0.5623491406440735,0.8765642642974854,0.7689393758773804
