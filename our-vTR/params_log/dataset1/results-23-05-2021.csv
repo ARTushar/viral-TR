@@ -1,2 +1,0 @@
-device,version,seed,distribution,batch_size,epochs,learning_rate,alpha,beta,convolution_type,kernel_size,kernel_count,linear_layer_shapes,l1_lambda,l2_lambda,dropout_p,trainLoss,trainAUROC,trainAccuracy,valLoss,valAUROC,valAccuracy,bothLoss,bothAUROC,bothAccuracy
-redwan-pc,165,0,"[0.3, 0.2, 0.2, 0.3]",64,23,0.001,10,0.1,custom,10,128,[32],0.001,0,,0.29900044202804565,0.9805427193641663,0.9235964417457581,0.46412259340286255,0.913636326789856,0.807692289352417,0.30254021286964417,0.9795389771461487,0.9211069941520691
