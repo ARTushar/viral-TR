@@ -1,12 +1,9 @@
 from dataset import SequenceDataModule
-import os
 from model import SimpleModel
-from utils.motif import make_motif
 import pytorch_lightning as pl
 
-version = 13
-model = SimpleModel.load_from_checkpoint(f'../dirs/saved_models/version_{version}.ckpt')
-
+version = 0
+model = SimpleModel.load_from_checkpoint(f'../globals/saved_models/version_{version}.ckpt')
 
 trainer = pl.Trainer()
 
@@ -15,7 +12,7 @@ datamodule=SequenceDataModule(
     # '../dirs/dataset2',
     # 'SRR5241432_seq.fa',
     # 'SRR5241432_out.dat',
-    'SRR5241430',
+    '../globals/datasets/normal/normal/SRR5241430',
     'seq.fa',
     'out.dat',
     batch_size=512,
