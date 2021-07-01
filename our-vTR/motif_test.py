@@ -11,10 +11,14 @@ model = SimpleModel.load_from_checkpoint(f'../dirs/saved_models/version_{version
 trainer = pl.Trainer()
 
 print('\n*** *** *** for train *** *** ***')
-train_metrics = trainer.test(model, datamodule=SequenceDataModule(
-    '../dirs/dataset1',
-    'SRR3101734_seq.fa',
-    'SRR3101734_out.dat',
+datamodule=SequenceDataModule(
+    # '../dirs/dataset2',
+    # 'SRR5241432_seq.fa',
+    # 'SRR5241432_out.dat',
+    'SRR5241430',
+    'seq.fa',
+    'out.dat',
     batch_size=512,
-    for_test='train'
-), verbose=True)[0]
+    for_test='both'
+)
+train_metrics = trainer.test(model, datamodule=datamodule, verbose=True)[0]
