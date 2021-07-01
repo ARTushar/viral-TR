@@ -69,8 +69,8 @@ class SequenceDataModule(pl.LightningDataModule):
     def setup(self, stage: Optional[str] = None):
         train_file_in = os.path.join(self.directory, 'train', self.file_in)
         train_file_out = os.path.join(self.directory, 'train', self.file_out)
-        cv_file_in = os.path.join(self.directory, 'cv', self.file_in)
-        cv_file_out = os.path.join(self.directory, 'cv', self.file_out)
+        cv_file_in = os.path.join(self.directory, 'val', self.file_in)
+        cv_file_out = os.path.join(self.directory, 'val', self.file_out)
         test_file_in = os.path.join(self.directory, 'test', self.file_in)
         test_file_out = os.path.join(self.directory, 'test', self.file_out)
         train_sequences, train_labels = read_samples(

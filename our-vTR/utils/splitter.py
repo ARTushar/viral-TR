@@ -3,9 +3,6 @@ import os
 import random
 from typing import Tuple
 
-from torch.functional import split
-
-
 def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, samples:list) -> None:
     type_in = os.path.join(directory, sample_type, raw_in)
     type_out = os.path.join(directory, sample_type, raw_out)
@@ -19,19 +16,19 @@ def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, sampl
 def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: float = .2) -> None:
     # rand = random.Random(seed)
 
-    all_seqs = []
+    pos_seqs, neg_seqs = [], []
 
     raw_dir_in = os.path.join(directory, 'raw', raw_in)
     raw_dir_out = os.path.join(directory, 'raw', raw_out)
 
     train_dir = os.path.join(directory, 'train')
-    cv_dir = os.path.join(directory, 'cv')
+    val_dir = os.path.join(directory, 'val')
     test_dir = os.path.join(directory, 'test')
 
     if not os.path.isdir(train_dir):
         os.mkdir(train_dir)
-    if not os.path.isdir(cv_dir):
-        os.mkdir(cv_dir)
+    if not os.path.isdir(val_dir):
+        os.mkdir(val_dir)
     if not os.path.isdir(test_dir):
         os.mkdir(test_dir)
 
@@ -40,26 +37,32 @@ def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: fl
             chrom = fi.readline()
             if not chrom: break
             seq = fi.readline().upper()
-            all_seqs.append((chrom, seq))
+            if 'pos' in chrom:
+                pos_seqs.append(((chrom, seq), '1\n'))
+            else:
+                neg_seqs.append(((chrom, seq), '0\n'))
 
-    all_labels = []
-    with open(raw_dir_out, 'r') as fo:
-        all_labels = list(fo.readlines())
+    random.shuffle(pos_seqs)
+    random.shuffle(neg_seqs)
 
-    all_together = list(zip(all_seqs, all_labels))
-    random.shuffle(all_together)
+    train_seqs, val_seqs, test_seqs = [], [], []
 
-    train_split = math.floor(test * len(all_together))
-    cv_split = math.floor(valid * len(all_together))
+    for l in (pos_seqs, neg_seqs):
+        train_split = math.floor(test * len(l))
+        val_split = math.floor(valid * len(l))
 
-    train_together = all_together[0: train_split]
-    cv_together = all_together[train_split: train_split+cv_split]
-    test_together = all_together[train_split+cv_split: -1]
+        train_seqs = [*train_seqs, *l[0: train_split]]
+        val_seqs = [*val_seqs, *l[train_split: train_split+val_split]]
+        test_seqs = [*test_seqs, *l[train_split+val_split: -1]]
+
+    random.shuffle(train_seqs)
+    random.shuffle(val_seqs)
+    random.shuffle(test_seqs)
 
     files = [
-        ('train', train_together),
-        ('cv', cv_together),
-        ('test', test_together)
+        ('train', train_seqs),
+        ('val', val_seqs),
+        ('test', test_seqs)
     ]
 
     for data_type, samples in files:
@@ -96,13 +99,13 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
     raw_dir_out = os.path.join(directory, 'raw', raw_out)
 
     train_dir = os.path.join(directory, 'train')
-    cv_dir = os.path.join(directory, 'cv')
+    val_dir = os.path.join(directory, 'val')
     test_dir = os.path.join(directory, 'test')
 
     if not os.path.isdir(train_dir):
         os.mkdir(train_dir)
-    if not os.path.isdir(cv_dir):
-        os.mkdir(cv_dir)
+    if not os.path.isdir(val_dir):
+        os.mkdir(val_dir)
     if not os.path.isdir(test_dir):
         os.mkdir(test_dir)
 
@@ -131,7 +134,7 @@ def chrom_splitter(directory:str, raw_in:str, raw_out:str) -> None:
 
     files = [
         ('train', train_together),
-        ('cv', val_together),
+        ('val', val_together),
         ('test', test_together)
     ]
 
@@ -156,15 +159,16 @@ def pos_neg_splitter(in_fas, out_pos_fa, out_neg_fa):
 
 
 if __name__ == '__main__':
-    peak_dataset = 'peak_around_datasets/normal/SRR5241430'
+    # peak_dataset = 'peak_around_datasets/normal/SRR5241430'
     # splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # chrom_splitter('dataset1_new', 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat')
     # splitter(peak_dataset, 'SRR5241430_seq.fa', 'SRR5241430_out.dat')
     # splitter(peak_dataset, 'SRR3101734_seq.fa', 'SRR3101734_out.dat')
     # splitter('dataset_test', 'seq.fa', 'out.dat')
-    pos_neg_splitter(
-        ['dataset3/train/SRR5241430_seq.fa'],
-        'gkmsvm/train_valid/pos_seq.fa',
-        'gkmsvm/train_valid/neg_seq.fa'
-    )
+    # pos_neg_splitter(
+    #     ['dataset3/train/SRR5241430_seq.fa'],
+    #     'gkmsvm/train_valid/pos_seq.fa',
+    #     'gkmsvm/train_valid/neg_seq.fa'
+    # )
+    splitter('../globals/datasets/peak/normal/SRR5241430', 'seq.fa', 'out.dat', 0.81, 0.09)

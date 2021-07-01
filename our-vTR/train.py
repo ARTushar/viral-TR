@@ -22,7 +22,8 @@ from utils.transforms import transform_all_labels, transform_all_sequences
 from utils.metrics import change_keys
 from utils.predictor import calc_metrics
 
-GDIR = os.path.join('..', 'dirs')
+GDIR = os.path.join('..', 'globals')
+DDIR = os.path.join(GDIR, 'datasets')
 
 device = ''
 with open('device.txt', 'r') as f:
@@ -34,7 +35,7 @@ SEED = 14
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
     data_module = SequenceDataModule(
-        params["data_dir"],
+        os.path.join(DDIR, params["data_dir"]),
         params["sequence_file"],
         params["label_file"],
         batch_size=params['batch_size']
@@ -87,7 +88,7 @@ def train(params: Dict) -> None:
 
     print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        params['data_dir'],
+        os.path.join(DDIR, params['data_dir']),
         params['sequence_file'],
         params['label_file'],
         batch_size=512,
@@ -95,7 +96,7 @@ def train(params: Dict) -> None:
     ), verbose=False)[0]
     print('\n*** *** *** for val *** *** ***')
     val_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        params['data_dir'],
+        os.path.join(DDIR, params['data_dir']),
         params['sequence_file'],
         params['label_file'],
         batch_size=512,
@@ -104,7 +105,7 @@ def train(params: Dict) -> None:
 
     # print('\n*** *** *** for train+val *** *** ***')
     # both_metrics = trainer.test(model, datamodule=SequenceDataModule(
-    #     params['data_dir'],
+    #     os.path.join(DDIR, params['data_dir']),
     #     params['sequence_file'],
     #     params['label_file'],
     #     batch_size=512,
@@ -118,10 +119,10 @@ def train(params: Dict) -> None:
     print(json.dumps(train_metrics, indent=4))
     print(json.dumps(val_metrics, indent=4))
 
-    train_in = os.path.join(params['data_dir'], 'train', params['sequence_file'])
-    train_out = os.path.join(params['data_dir'], 'train', params['label_file'])
-    val_in = os.path.join(params['data_dir'], 'cv', params['sequence_file'])
-    val_out = os.path.join(params['data_dir'], 'cv', params['label_file'])
+    train_in = os.path.join(DDIR, params['data_dir'], 'train', params['sequence_file'])
+    train_out = os.path.join(DDIR, params['data_dir'], 'train', params['label_file'])
+    val_in = os.path.join(DDIR, params['data_dir'], 'val', params['sequence_file'])
+    val_out = os.path.join(DDIR, params['data_dir'], 'val', params['label_file'])
 
     train_results = calc_metrics(model, train_in, train_out)
     val_results = calc_metrics(model, val_in, val_out)
@@ -149,7 +150,7 @@ def train(params: Dict) -> None:
         json.dump(val_results, f, indent=4)
 
     log_dir = os.path.join(GDIR, 'params_log', params['data_dir'])
-    logo_dir = os.path.join(GDIR, 'logos', params['data_dir'], str(version))
+    logo_dir = os.path.join(GDIR, 'logos', str(version))
 
     del params['data_dir']
     del params['sequence_file']
@@ -184,6 +185,5 @@ if __name__ == "__main__":
     # args = parser.parse_args()
     # args.__setattr__('max_epochs', params['epochs'])
 
-    params['data_dir'] = os.path.join(GDIR, params['data_dir'])
     train(params)
 
