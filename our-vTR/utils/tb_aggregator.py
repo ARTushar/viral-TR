@@ -5,12 +5,23 @@ from glob import glob
 from os.path import isdir
 from shutil import rmtree
 from typing import List, Tuple, Dict
+from json import dumps
+from copy import deepcopy
 
 import numpy as np
 from tensorboard.backend.event_processing.event_accumulator import (
     EventAccumulator,
 )
 from torch.utils.tensorboard import SummaryWriter
+
+
+def deep_compare(obj1, obj2) -> bool:
+    return dumps(obj1) == dumps(obj2)
+
+def all_same(l: List) -> bool:
+    if len(l) == 0:
+        return True
+    return deep_compare(l, [l[0]]*len(l))
 
 
 def read_tb_events(in_dirs_glob: str) -> Tuple[dict, dict]:
@@ -31,6 +42,13 @@ def read_tb_events(in_dirs_glob: str) -> Tuple[dict, dict]:
 
     tags = summary_iterators[0].Tags()["scalars"]
 
+    need1 = 'trainAccuracy'
+    need2 = 'valAccuracy'
+    make1 = 'accuracyDiff'
+
+    assert need1 in tags
+    assert need2 in tags
+
     for iterator in summary_iterators:
         # assert all runs have the same tags for scalar data
         assert iterator.Tags()["scalars"] == tags
@@ -44,6 +62,19 @@ def read_tb_events(in_dirs_glob: str) -> Tuple[dict, dict]:
 
             steps[tag].append([e.step for e in events])
             values[tag].append([e.value for e in events])
+
+    assert deep_compare(steps[need1], steps[need2])
+    for l in steps[need1]:
+        assert all_same(l)
+
+    steps[make1] = deepcopy(steps[need1])
+
+    values[make1] = []
+    for l1, l2 in zip(values[need1], values[need2]):
+        d = []
+        for a1, a2 in zip(l1, l2):
+            d.append(a1-a2)
+        values[make1].append(d)
 
     return steps, values
 

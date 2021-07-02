@@ -24,6 +24,19 @@ from utils.tb_aggregator import write_reduced_tb_events
 
 from model import SimpleModel
 
+GDIR = os.path.join('..', 'globals')
+DDIR = os.path.join(GDIR, 'datasets')
+
+device = ''
+with open('device.txt', 'r') as f:
+    device = f.readline().strip()
+
+WORKERS = 4 
+if 'colab' in device:
+    WORKERS = 2
+elif 'server' in device:
+    WORKERS = 6
+
 
 class DataCV:
     """dataset for cross-validation."""
@@ -85,13 +98,13 @@ class DataCV:
     def read_full_train_data(self):
         train_sequence_path = os.path.join(self.data_dir, 'train',  self.sequence_file)
         train_label_path = os.path.join(self.data_dir, 'train', self.label_file)
-        cv_sequence_path = os.path.join(self.data_dir, 'cv',  self.sequence_file)
-        cv_label_path = os.path.join(self.data_dir, 'cv', self.label_file)
+        val_sequence_path = os.path.join(self.data_dir, 'val',  self.sequence_file)
+        val_label_path = os.path.join(self.data_dir, 'val', self.label_file)
 
         train_sequences, train_labels = read_samples(train_sequence_path, train_label_path)
-        cv_sequences, cv_labels = read_samples(cv_sequence_path, cv_label_path)
+        val_sequences, val_labels = read_samples(val_sequence_path, val_label_path)
 
-        return [*train_sequences, *cv_sequences], [*train_labels, *cv_labels],
+        return [*train_sequences, *val_sequences], [*train_labels, *val_labels],
 
 
     def get_dataset(self):
@@ -223,14 +236,16 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
     pl.seed_everything(seed, workers=True)
 
     data_module = DataCV(
-        data_dir=params['data_dir'],
+        data_dir=os.path.join(DDIR, params['data_dir']),
         sequence_file=params['sequence_file'],
         label_file=params['label_file'],
         batch_size=params['batch_size'],
         n_splits=params['n_splits'],
         stratify=params['stratify'],
-        num_workers=2
+        num_workers=WORKERS
     )
+
+    in_colab = ('colab' in device or 'server' in device)
 
     trainer_kwargs_ = {
         # 'weights_summary': None,
@@ -238,13 +253,13 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'num_sanity_val_steps': 0,
         'max_epochs': params['epochs'],
         'deterministic': True,
-        'gpus': -1,
-        'auto_select_gpus': True
+        'gpus': (-1 if in_colab else None),
+        'auto_select_gpus': in_colab,
         # 'callbacks': [model_checkpoint]
     }
 
     k = params['n_splits']
-    log_dir = os.path.join(f'{k}_fold_lightning_logs', params['data_dir'])
+    log_dir = os.path.join(GDIR, f'{k}_fold_lightning_logs', params['data_dir'])
 
     cv = CV(log_dir=log_dir, **trainer_kwargs_)
 
@@ -271,12 +286,18 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
 
     version = cv.version()
 
-    log_metrics({'version': version, 'seed': seed, **params, **avg_metrics})
+    log_metrics(GDIR, {
+        'device': device,
+        'version': version,
+        'seed': seed,
+        **params,
+        **avg_metrics
+    })
 
-    # write_reduced_tb_events(
-    #     os.path.join(log_dir, 'fold_*', 'version_' + str(version)),
-    #     os.path.join(log_dir, 'average', 'version_' + str(version))
-    # )
+    write_reduced_tb_events(
+        os.path.join(log_dir, 'fold_*', 'version_' + str(version)),
+        os.path.join(log_dir, 'aggregate', 'version_' + str(version))
+    )
 
 
 def main():

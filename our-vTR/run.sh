@@ -19,17 +19,17 @@ case $1 in
         ;;
         'n')
             echo 'running tensorboard'
-            python3 -m tensorboard.main --logdir lightning_logs
+            python3 -m tensorboard.main --logdir ../globals/lightning_logs
         ;;
         *)
             echo 'running tensorboard'
-            python3 -m tensorboard.main --logdir $2_fold_lightning_logs/dataset1
+            python3 -m tensorboard.main --logdir ../globals/$2_fold_lightning_logs/normal/normal/SRR5241430
         ;;
         esac
     ;;
     a)
         echo 'running aggregator'
-        python3 utils/tb_aggregator.py -d 'lightning_logs/*' -o 'lightning_logs/test_aggr'
+        python3 utils/tb_aggregator.py -d '../globals/lightning_logs/default/*' -o '../globals/lightning_logs/test_aggr' -f
     ;;
     r)
         case $3 in

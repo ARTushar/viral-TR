@@ -28,14 +28,10 @@ def find_metrics(
     return train_metric, val_metric
 
 
-def log_metrics(logs: Dict) -> None:
-    log_dir = 'cv_params_log'
+def log_metrics(directory: str, logs: Dict) -> None:
+    log_dir = os.path.join(directory, 'cv_params_log', logs['data_dir'])
     if not os.path.isdir(log_dir):
-        os.mkdir(log_dir)
-
-    log_dir = os.path.join(log_dir, logs['data_dir'])
-    if not os.path.isdir(log_dir):
-        os.mkdir(log_dir)
+        os.makedirs(log_dir)
 
     del logs['data_dir']
     del logs['sequence_file']
