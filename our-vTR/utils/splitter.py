@@ -51,6 +51,8 @@ def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: fl
         train_split = math.floor(test * len(l))
         val_split = math.floor(valid * len(l))
 
+        # train_seqs = [*train_seqs, *l]
+
         train_seqs = [*train_seqs, *l[0: train_split]]
         val_seqs = [*val_seqs, *l[train_split: train_split+val_split]]
         test_seqs = [*test_seqs, *l[train_split+val_split: -1]]
@@ -171,4 +173,6 @@ if __name__ == '__main__':
     #     'gkmsvm/train_valid/pos_seq.fa',
     #     'gkmsvm/train_valid/neg_seq.fa'
     # )
-    splitter('../globals/datasets/peak/normal/SRR5241430', 'seq.fa', 'out.dat', 0.81, 0.09)
+    # splitter('../globals/datasets/together/peak/normal/SRR5241432',
+    # 'seq.fa', 'out.dat', 0.81, 0.09)
+    splitter('../globals/datasets/normal/normal/SRR873824', 'seq.fa', 'out.dat', 0.81, 0.09)

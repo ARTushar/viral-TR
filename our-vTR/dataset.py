@@ -1,4 +1,5 @@
 import os
+import random
 from typing import Callable, Optional, Tuple, List
 
 import pytorch_lightning as pl
@@ -66,6 +67,16 @@ class SequenceDataModule(pl.LightningDataModule):
         # splitter(self.directory, self.file_in, self.file_out)
         pass
 
+    def get_all(self) -> Tuple:
+        raw_file_in = os.path.join(self.directory, 'raw', self.file_in)
+        raw_file_out = os.path.join(self.directory, 'raw', self.file_out)
+        raw_sequences, raw_labels = read_samples(raw_file_in, raw_file_out)
+        data = list(zip(raw_sequences, raw_labels))
+        random.shuffle(data)
+        raw_sequences = [a for a, b in data]
+        raw_labels = [b for a, b in data]
+        return raw_sequences, raw_labels
+
     def setup(self, stage: Optional[str] = None):
         train_file_in = os.path.join(self.directory, 'train', self.file_in)
         train_file_out = os.path.join(self.directory, 'train', self.file_out)
@@ -73,13 +84,22 @@ class SequenceDataModule(pl.LightningDataModule):
         cv_file_out = os.path.join(self.directory, 'val', self.file_out)
         test_file_in = os.path.join(self.directory, 'test', self.file_in)
         test_file_out = os.path.join(self.directory, 'test', self.file_out)
+
         train_sequences, train_labels = read_samples(
             train_file_in, train_file_out)
         cv_sequences, cv_labels = read_samples(cv_file_in, cv_file_out)
 
         if stage == 'fit':
-            self.train_data = CustomSequenceDataset(
-                train_sequences, train_labels, transform_all_sequences, transform_all_labels)
+            if self.for_test == 'both':
+                self.train_data = CustomSequenceDataset(
+                 [*train_sequences, *cv_sequences], [*train_labels, *cv_labels], transform_all_sequences, transform_all_labels)
+            if self.for_test == 'all':
+                raw_sequences, raw_labels = self.get_all()
+                self.train_data = CustomSequenceDataset(
+                    raw_sequences, raw_labels, transform_all_sequences, transform_all_labels)
+            else:
+                self.train_data = CustomSequenceDataset(
+                    train_sequences, train_labels, transform_all_sequences, transform_all_labels)
             self.val_data = CustomSequenceDataset(
                 cv_sequences, cv_labels, transform_all_sequences, transform_all_labels)
 
@@ -93,6 +113,11 @@ class SequenceDataModule(pl.LightningDataModule):
             elif self.for_test == 'both':
                 self.test_data = CustomSequenceDataset(
                  [*cv_sequences, *train_sequences], [*cv_labels, *train_labels], transform_all_sequences, transform_all_labels)
+            elif self.for_test == 'all':
+                raw_sequences, raw_labels = self.get_all()
+                self.test_data = CustomSequenceDataset(
+                    raw_sequences, raw_labels, transform_all_sequences, transform_all_labels)
+
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, num_workers=WORKERS)

@@ -30,7 +30,7 @@ with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
 SEED = random.randint(0, 100)
-# SEED = 14
+# SEED = 896 # 14
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -38,7 +38,8 @@ def train(params: Dict) -> None:
         os.path.join(DDIR, params["data_dir"]),
         params["sequence_file"],
         params["label_file"],
-        batch_size=params['batch_size']
+        batch_size=params['batch_size'],
+        for_test='all'
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
@@ -102,6 +103,24 @@ def train(params: Dict) -> None:
         batch_size=512,
         for_test='val'
     ), verbose=False)[0]
+
+    # print('\n*** *** *** for another set *** *** ***')
+    # trainer.test(model, datamodule=SequenceDataModule(
+    #     '../globals/datasets/normal/normal/SRR5241432',
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test='all'
+    # ), verbose=True)[0]
+
+    # print('\n*** *** *** for another set *** *** ***')
+    # trainer.test(model, datamodule=SequenceDataModule(
+    #     '../globals/datasets/peak/normal/SRR5241432',
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test='all'
+    # ), verbose=True)[0]
 
     # print('\n*** *** *** for train+val *** *** ***')
     # both_metrics = trainer.test(model, datamodule=SequenceDataModule(

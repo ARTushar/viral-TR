@@ -212,7 +212,7 @@ class CV:
             # Fit:
             trainer.fit(_model, train_loader, val_loader)
 
-            trainer.logger.experiment.flush()
+            trainer.logger.finalize(status='done')
 
             self.versions.append(trainer.logger.version)
 
@@ -312,17 +312,16 @@ def main():
     run_cv(params)
 
 
-def aggregate():
+def aggregate(version: int):
     params = json.load(open('parameters.json'))
     k = params['n_splits']
-    log_dir = os.path.join(f'{k}_fold_lightning_logs', params['data_dir'])
-    version = 2
+    log_dir = os.path.join(GDIR, f'{k}_fold_lightning_logs', params['data_dir'])
     write_reduced_tb_events(
         os.path.join(log_dir, 'fold_*', 'version_' + str(version)),
-        os.path.join(log_dir, 'average', 'version_' + str(version))
+        os.path.join(log_dir, 'aggregate', 'version_' + str(version))
     )
 
 
 if __name__ == '__main__':
-    main()
-    # aggregate()
+    # main()
+    aggregate(0)
