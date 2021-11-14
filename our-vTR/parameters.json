@@ -1,5 +1,5 @@
 {
-    "data_dir": "normal/normal/SRR5241430",
+    "data_dir": "normal/normal/SRR873824",
     "sequence_file": "seq.fa",
     "label_file": "out.dat",
     "distribution": [0.3, 0.2, 0.2, 0.3],
@@ -9,13 +9,13 @@
     "alpha": 10,
     "beta": 1e-1,
     "learning_rate": 1e-3,
-    "epochs": 20,
+    "epochs": 28,
     "convolution_type": "custom",
     "kernel_size": 14,
     "kernel_count": 16,
     "pool_type": "max",
     "linear_layer_shapes": [32],
-    "l1_lambda": 2e-3,
+    "l1_lambda": 1e-3,
     "l2_lambda": 0,
     "dropout_p": 0
 }

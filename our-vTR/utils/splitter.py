@@ -175,4 +175,4 @@ if __name__ == '__main__':
     # )
     # splitter('../globals/datasets/together/peak/normal/SRR5241432',
     # 'seq.fa', 'out.dat', 0.81, 0.09)
-    splitter('../globals/datasets/normal/normal/SRR873824', 'seq.fa', 'out.dat', 0.81, 0.09)
+    splitter('../globals/datasets/normal/normal/SRR3101734', 'seq.fa', 'out.dat', 0.81, 0.09)

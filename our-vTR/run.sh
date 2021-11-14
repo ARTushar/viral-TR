@@ -23,7 +23,7 @@ case $1 in
         ;;
         *)
             echo 'running tensorboard'
-            python3 -m tensorboard.main --logdir ../globals/$2_fold_lightning_logs/together/peak/normal/SRR5241432
+            python3 -m tensorboard.main --logdir ../globals/$2_fold_lightning_logs/normal/normal/SRR873825
         ;;
         esac
     ;;

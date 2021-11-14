@@ -30,7 +30,7 @@ with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
 SEED = random.randint(0, 100)
-# SEED = 896 # 14
+# SEED = 56
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -39,7 +39,7 @@ def train(params: Dict) -> None:
         params["sequence_file"],
         params["label_file"],
         batch_size=params['batch_size'],
-        for_test='all'
+        # for_test='all'
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
