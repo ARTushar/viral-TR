@@ -114,25 +114,23 @@ def train(params: Dict) -> None:
     #     for_test='both'
     # ), verbose=False)[0]
 
-    print('\n*** *** *** for another set *** *** ***')
-    trainer.test(model, datamodule=SequenceDataModule(
-        '../globals/datasets/matrix/EBNA2-IB4',
-        params['sequence_file'],
-        params['label_file'],
-        batch_size=512,
-        for_test='all'
-    ), verbose=True)
+    # print('\n*** *** *** for another set *** *** ***')
+    # trainer.test(model, datamodule=SequenceDataModule(
+    #     '../globals/datasets/matrix/EBNA2-GM12878',
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test='all'
+    # ), verbose=True)
 
-    print('\n*** *** *** for another set *** *** ***')
-    trainer.test(model, datamodule=SequenceDataModule(
-        '../globals/datasets/matrix/EBNA2-Mutu3',
-        params['sequence_file'],
-        params['label_file'],
-        batch_size=512,
-        for_test='all'
-    ), verbose=True)
-
-    return
+    # print('\n*** *** *** for another set *** *** ***')
+    # trainer.test(model, datamodule=SequenceDataModule(
+    #     '../globals/datasets/matrix/EBNA2-Mutu3',
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test='all'
+    # ), verbose=True)
 
     change_keys(train_metrics, 'train', 'test')
     change_keys(val_metrics, 'val', 'test')
@@ -172,7 +170,6 @@ def train(params: Dict) -> None:
         json.dump(val_results, f, indent=4)
 
     log_dir = os.path.join(GDIR, 'params_log', params['data_dir'])
-    logo_dir = os.path.join(GDIR, 'logos', str(version))
 
     del params['data_dir']
     del params['sequence_file']
@@ -182,9 +179,9 @@ def train(params: Dict) -> None:
     if 'stratify' in params:
         del params['stratify']
 
-    if not os.path.isdir(logo_dir):
-        os.makedirs(logo_dir)
-
+    # logo_dir = os.path.join(GDIR, 'logos', str(version))
+    # if not os.path.isdir(logo_dir):
+    #     os.makedirs(logo_dir)
     # make_motif(logo_dir, model.get_probabilities(), params['distribution'])
 
     if not os.path.isdir(log_dir):
