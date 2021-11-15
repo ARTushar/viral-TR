@@ -29,8 +29,8 @@ device = ''
 with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
-SEED = random.randint(0, 100)
-# SEED = 56
+# SEED = random.randint(0, 100)
+SEED = 22
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -55,7 +55,8 @@ def train(params: Dict) -> None:
     trainer = pl.Trainer(
         max_epochs=params['epochs'],
         deterministic=True,
-        gpus=(-1 if in_colab else None),
+        # gpus=(-1 if in_colab else None),
+        gpus=-1,
         auto_select_gpus=in_colab,
         callbacks=[early_stopper],
         logger=logger
@@ -104,24 +105,6 @@ def train(params: Dict) -> None:
         for_test='val'
     ), verbose=False)[0]
 
-    # print('\n*** *** *** for another set *** *** ***')
-    # trainer.test(model, datamodule=SequenceDataModule(
-    #     '../globals/datasets/normal/normal/SRR5241432',
-    #     params['sequence_file'],
-    #     params['label_file'],
-    #     batch_size=512,
-    #     for_test='all'
-    # ), verbose=True)[0]
-
-    # print('\n*** *** *** for another set *** *** ***')
-    # trainer.test(model, datamodule=SequenceDataModule(
-    #     '../globals/datasets/peak/normal/SRR5241432',
-    #     params['sequence_file'],
-    #     params['label_file'],
-    #     batch_size=512,
-    #     for_test='all'
-    # ), verbose=True)[0]
-
     # print('\n*** *** *** for train+val *** *** ***')
     # both_metrics = trainer.test(model, datamodule=SequenceDataModule(
     #     os.path.join(DDIR, params['data_dir']),
@@ -130,6 +113,26 @@ def train(params: Dict) -> None:
     #     batch_size=512,
     #     for_test='both'
     # ), verbose=False)[0]
+
+    print('\n*** *** *** for another set *** *** ***')
+    trainer.test(model, datamodule=SequenceDataModule(
+        '../globals/datasets/matrix/EBNA2-IB4',
+        params['sequence_file'],
+        params['label_file'],
+        batch_size=512,
+        for_test='all'
+    ), verbose=True)
+
+    print('\n*** *** *** for another set *** *** ***')
+    trainer.test(model, datamodule=SequenceDataModule(
+        '../globals/datasets/matrix/EBNA2-Mutu3',
+        params['sequence_file'],
+        params['label_file'],
+        batch_size=512,
+        for_test='all'
+    ), verbose=True)
+
+    return
 
     change_keys(train_metrics, 'train', 'test')
     change_keys(val_metrics, 'val', 'test')
@@ -182,7 +185,7 @@ def train(params: Dict) -> None:
     if not os.path.isdir(logo_dir):
         os.makedirs(logo_dir)
 
-    make_motif(logo_dir, model.get_probabilities(), params['distribution'])
+    # make_motif(logo_dir, model.get_probabilities(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

@@ -1,5 +1,5 @@
 {
-    "data_dir": "normal/normal/SRR873824",
+    "data_dir": "matrix/EBNA2-GM12878",
     "sequence_file": "seq.fa",
     "label_file": "out.dat",
     "distribution": [0.3, 0.2, 0.2, 0.3],
@@ -9,7 +9,7 @@
     "alpha": 10,
     "beta": 1e-1,
     "learning_rate": 1e-3,
-    "epochs": 28,
+    "epochs": 22,
     "convolution_type": "custom",
     "kernel_size": 14,
     "kernel_count": 16,

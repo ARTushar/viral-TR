@@ -15,6 +15,7 @@ def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, sampl
 
 def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: float = .2) -> None:
     # rand = random.Random(seed)
+    random.seed(0)
 
     pos_seqs, neg_seqs = [], []
 
@@ -173,6 +174,7 @@ if __name__ == '__main__':
     #     'gkmsvm/train_valid/pos_seq.fa',
     #     'gkmsvm/train_valid/neg_seq.fa'
     # )
-    # splitter('../globals/datasets/together/peak/normal/SRR5241432',
-    # 'seq.fa', 'out.dat', 0.81, 0.09)
-    splitter('../globals/datasets/normal/normal/SRR3101734', 'seq.fa', 'out.dat', 0.81, 0.09)
+    # splitter('../globals/datasets/together/normal/normal/SRR3101734',
+    # 'seq.fa', 'out.dat', 0.9, 0.1)
+    # splitter('../globals/datasets/normal/normal/SRR3101734', 'seq.fa', 'out.dat', 0.81, 0.09)
+    splitter('../globals/datasets/matrix/HBZ-ST1', 'seq.fa', 'out.dat', 0.9, 0.1)
