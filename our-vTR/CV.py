@@ -253,7 +253,8 @@ def run_cv(params, seed: int = random.randint(1, 1000)):
         # 'num_sanity_val_steps': 0,
         'max_epochs': params['epochs'],
         'deterministic': True,
-        'gpus': (-1 if in_colab else None),
+        # 'gpus': (-1 if in_colab else None),
+        'gpus': -1,
         'auto_select_gpus': in_colab,
         # 'callbacks': [model_checkpoint]
     }
@@ -309,7 +310,7 @@ def main():
     #                                    mode='max',
     #                                    filename='custom_model_{epoch}',)
 
-    run_cv(params)
+    run_cv(params, 22)
 
 
 def aggregate(version: int):
@@ -323,5 +324,5 @@ def aggregate(version: int):
 
 
 if __name__ == '__main__':
-    # main()
-    aggregate(0)
+    main()
+    # aggregate(0)

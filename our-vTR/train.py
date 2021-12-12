@@ -29,8 +29,8 @@ device = ''
 with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
-# SEED = random.randint(0, 100)
-SEED = 22
+SEED = random.randint(0, 100)
+# SEED = 22
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -39,7 +39,7 @@ def train(params: Dict) -> None:
         params["sequence_file"],
         params["label_file"],
         batch_size=params['batch_size'],
-        # for_test='all'
+        for_test='all'
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
@@ -116,7 +116,7 @@ def train(params: Dict) -> None:
 
     # print('\n*** *** *** for another set *** *** ***')
     # trainer.test(model, datamodule=SequenceDataModule(
-    #     '../globals/datasets/matrix/EBNA2-GM12878',
+    #     '../globals/datasets/matrix/HBZ-ST1',
     #     params['sequence_file'],
     #     params['label_file'],
     #     batch_size=512,
@@ -179,10 +179,10 @@ def train(params: Dict) -> None:
     if 'stratify' in params:
         del params['stratify']
 
-    # logo_dir = os.path.join(GDIR, 'logos', str(version))
-    # if not os.path.isdir(logo_dir):
-    #     os.makedirs(logo_dir)
-    # make_motif(logo_dir, model.get_probabilities(), params['distribution'])
+    logo_dir = os.path.join(GDIR, 'logos', str(version))
+    if not os.path.isdir(logo_dir):
+        os.makedirs(logo_dir)
+    make_motif(logo_dir, model.get_probabilities(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
