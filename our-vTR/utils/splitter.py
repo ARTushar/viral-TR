@@ -13,6 +13,21 @@ def write_samples(directory:str, sample_type:str, raw_in:str, raw_out:str, sampl
             fo.write(label)
 
 
+def mix_merge(a:list, b:list) -> list:
+    if len(a) == 0:
+        return b
+    if len(a) > len(b):
+        a, b = b, a
+    c = []
+    l = len(a)
+    for i in range(l):
+        c.append(a[i])
+        c.append(b[i])
+    for i in range(l, len(b)):
+        c.insert(random.randrange(0, len(c)), b[i])
+    return c
+
+
 def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: float = .2) -> None:
     # rand = random.Random(seed)
     random.seed(0)
@@ -54,13 +69,16 @@ def splitter(directory:str, raw_in:str, raw_out:str, test: float = .6, valid: fl
 
         # train_seqs = [*train_seqs, *l]
 
-        train_seqs = [*train_seqs, *l[0: train_split]]
-        val_seqs = [*val_seqs, *l[train_split: train_split+val_split]]
-        test_seqs = [*test_seqs, *l[train_split+val_split: -1]]
+        # train_seqs = [*train_seqs, *l[0: train_split]]
+        # val_seqs = [*val_seqs, *l[train_split: train_split+val_split]]
+        # test_seqs = [*test_seqs, *l[train_split+val_split: -1]]
+        train_seqs = mix_merge(train_seqs, l[0: train_split])
+        val_seqs = mix_merge(val_seqs, l[train_split: train_split+val_split])
+        test_seqs = mix_merge(test_seqs, l[train_split+val_split: -1])
 
-    random.shuffle(train_seqs)
-    random.shuffle(val_seqs)
-    random.shuffle(test_seqs)
+    # random.shuffle(train_seqs)
+    # random.shuffle(val_seqs)
+    # random.shuffle(test_seqs)
 
     files = [
         ('train', train_seqs),
@@ -177,4 +195,4 @@ if __name__ == '__main__':
     # splitter('../globals/datasets/together/normal/normal/SRR3101734',
     # 'seq.fa', 'out.dat', 0.9, 0.1)
     # splitter('../globals/datasets/normal/normal/SRR3101734', 'seq.fa', 'out.dat', 0.81, 0.09)
-    splitter('../globals/datasets/matrix/HBZ-ST1', 'seq.fa', 'out.dat', 0.9, 0.1)
+    splitter('../globals/datasets/matrix/EBNA2-Mutu3', 'seq.fa', 'out.dat', 0.9, 0.1)

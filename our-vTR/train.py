@@ -29,8 +29,10 @@ device = ''
 with open('device.txt', 'r') as f:
     device = f.readline().strip()
 
-SEED = random.randint(0, 100)
-# SEED = 22
+# SEED = random.randint(0, 100)
+SEED = 4
+
+train_on = 'both'
 
 def train(params: Dict) -> None:
     pl.seed_everything(SEED, workers=True)
@@ -39,7 +41,7 @@ def train(params: Dict) -> None:
         params["sequence_file"],
         params["label_file"],
         batch_size=params['batch_size'],
-        for_test='all'
+        for_test=train_on
     )
 
     # early_stopper = EarlyStopping(monitor='valLoss')
@@ -94,7 +96,7 @@ def train(params: Dict) -> None:
         params['sequence_file'],
         params['label_file'],
         batch_size=512,
-        for_test='train'
+        for_test=train_on
     ), verbose=False)[0]
     print('\n*** *** *** for val *** *** ***')
     val_metrics = trainer.test(model, datamodule=SequenceDataModule(
@@ -114,23 +116,16 @@ def train(params: Dict) -> None:
     #     for_test='both'
     # ), verbose=False)[0]
 
-    # print('\n*** *** *** for another set *** *** ***')
-    # trainer.test(model, datamodule=SequenceDataModule(
-    #     '../globals/datasets/matrix/HBZ-ST1',
-    #     params['sequence_file'],
-    #     params['label_file'],
-    #     batch_size=512,
-    #     for_test='all'
-    # ), verbose=True)
-
-    # print('\n*** *** *** for another set *** *** ***')
-    # trainer.test(model, datamodule=SequenceDataModule(
-    #     '../globals/datasets/matrix/EBNA2-Mutu3',
-    #     params['sequence_file'],
-    #     params['label_file'],
-    #     batch_size=512,
-    #     for_test='all'
-    # ), verbose=True)
+    # other_datasets = ['matrix/HBZ-ST1']
+    # for odset in other_datasets:
+    #     print('\n*** *** *** for another set: {} *** *** ***'.format(odset))
+    #     trainer.test(model, datamodule=SequenceDataModule(
+    #         '../globals/datasets/' + odset,
+    #         params['sequence_file'],
+    #         params['label_file'],
+    #         batch_size=512,
+    #         for_test='all'
+    #     ), verbose=True)
 
     change_keys(train_metrics, 'train', 'test')
     change_keys(val_metrics, 'val', 'test')

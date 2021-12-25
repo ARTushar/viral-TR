@@ -310,8 +310,11 @@ def main():
     #                                    mode='max',
     #                                    filename='custom_model_{epoch}',)
 
-    # run_cv(params, 22)
-    run_cv(params)
+    run_cv(params, 4)
+    # for i in range(2, 6):
+    #     params['l1_lambda'] = i * 1e-3
+    #     run_cv(params, 4)
+    # run_cv(params)
 
 
 def aggregate(version: int):
