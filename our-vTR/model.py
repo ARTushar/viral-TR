@@ -181,6 +181,9 @@ class SimpleModel(pl.LightningModule):
             return self.conv1d.get_probabilities()
         return F.softmax(self.conv1d.weight, dim=1)
 
+    def nullify(self, idx: int) -> None:
+        self.conv1d.nullify(idx)
+
 
 def main():
     model = SimpleModel(

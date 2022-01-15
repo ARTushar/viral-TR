@@ -91,6 +91,42 @@ def train(params: Dict) -> None:
     params['best_score'] = float(early_stopper.best_score)
 
     print('\n*** *** *** for train *** *** ***')
+    init_metrics = trainer.test(model, datamodule=SequenceDataModule(
+        os.path.join(DDIR, params['data_dir']),
+        params['sequence_file'],
+        params['label_file'],
+        batch_size=512,
+        for_test=train_on
+    ), verbose=False)[0]
+    print(json.dumps(init_metrics, indent=4))
+
+    motif_rank = []
+
+    for i in range(params['kernel_count']):
+        print('\n--------------')
+        print(f'nullifying {i}')
+        model.nullify(i)
+        test_metrics = trainer.test(model, datamodule=SequenceDataModule(
+            os.path.join(DDIR, params['data_dir']),
+            params['sequence_file'],
+            params['label_file'],
+            batch_size=512,
+            for_test=train_on
+        ), verbose=False)[0]
+        for key in test_metrics.keys():
+            test_metrics[key] -= init_metrics[key]
+        print(json.dumps(test_metrics, indent=4))
+        print('--------------\n')
+        motif_rank.append((test_metrics['testAccuracy'], i))
+
+    motif_rank.sort()
+
+    for motif in motif_rank:
+        print(motif)
+
+    return
+
+    print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(
         os.path.join(DDIR, params['data_dir']),
         params['sequence_file'],
@@ -134,6 +170,8 @@ def train(params: Dict) -> None:
     print(json.dumps(train_metrics, indent=4))
     print(json.dumps(val_metrics, indent=4))
 
+    return
+
     train_in = os.path.join(DDIR, params['data_dir'], 'train', params['sequence_file'])
     train_out = os.path.join(DDIR, params['data_dir'], 'train', params['label_file'])
     val_in = os.path.join(DDIR, params['data_dir'], 'val', params['sequence_file'])
@@ -149,13 +187,13 @@ def train(params: Dict) -> None:
         'seed': SEED
     }
 
-    model_dir = os.path.join(GDIR, 'saved_models')
+    model_dir = os.path.join(GDIR, 'saved_models', params['data_dir'])
     if not os.path.isdir(model_dir):
         os.makedirs(model_dir)
     saved_file = os.path.join(model_dir, f'version_{version}.ckpt')
     trainer.save_checkpoint(saved_file)
 
-    json_dir = os.path.join(GDIR, 'json_logs', 'version' + str(version))
+    json_dir = os.path.join(GDIR, 'json_logs', params['data_dir'], 'version' + str(version))
     if not os.path.isdir(json_dir):
         os.makedirs(json_dir)
 
@@ -163,6 +201,11 @@ def train(params: Dict) -> None:
         json.dump(train_results, f, indent=4)
     with open(os.path.join(json_dir, 'validation.json'), 'w') as f:
         json.dump(val_results, f, indent=4)
+
+    logo_dir = os.path.join(GDIR, 'logos', params['data_dir'], str(version))
+    if not os.path.isdir(logo_dir):
+        os.makedirs(logo_dir)
+    make_motif(logo_dir, model.get_probabilities(), params['distribution'])
 
     log_dir = os.path.join(GDIR, 'params_log', params['data_dir'])
 
@@ -173,11 +216,6 @@ def train(params: Dict) -> None:
         del params['n_splits']
     if 'stratify' in params:
         del params['stratify']
-
-    logo_dir = os.path.join(GDIR, 'logos', str(version))
-    if not os.path.isdir(logo_dir):
-        os.makedirs(logo_dir)
-    make_motif(logo_dir, model.get_probabilities(), params['distribution'])
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)

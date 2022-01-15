@@ -38,12 +38,17 @@ class CustomConv1d(nn.Conv1d):
         t_distr = torch.tensor([distribution]).T
         self.distr_log = torch.log(t_distr.repeat(1, self.kernel_size[0]))
 
+        self.exclude_idx = None
+
 
     def forward(self, input: Tensor) -> Tensor:
         use_weight = self.weight
         if self.run_value > 2:
             w_to_cpu = self.weight.type_as(self.distr_log)
             use_weight = torch.stack([self.calculate(w) for w in w_to_cpu])
+
+        if self.exclude_idx is not None:
+            use_weight[self.exclude_idx] = 0
 
         self.run_value += 1
         return self._conv_forward(input, use_weight.type_as(input), self.bias)
@@ -68,3 +73,6 @@ class CustomConv1d(nn.Conv1d):
 
     def get_probabilities(self) -> Tensor:
         return torch.stack([self.probability(w) for w in self.weight])
+
+    def nullify(self, idx: int = None) -> None:
+        self.exclude_idx = idx
