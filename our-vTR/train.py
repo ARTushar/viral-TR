@@ -117,12 +117,13 @@ def train(params: Dict) -> None:
             test_metrics[key] -= init_metrics[key]
         print(json.dumps(test_metrics, indent=4))
         print('--------------\n')
-        motif_rank.append((test_metrics['testAccuracy'], i))
+        motif_rank.append((100*test_metrics['testAccuracy'], i))
 
     motif_rank.sort()
 
-    for motif in motif_rank:
-        print(motif)
+    with open('EBNA2-IB4-zero-ranks.txt', 'w') as f:
+        for motif in motif_rank:
+            print(motif, file=f)
 
     return
 
