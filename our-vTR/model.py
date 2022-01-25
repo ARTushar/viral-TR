@@ -10,6 +10,7 @@ from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall, AURO
 from torchmetrics.functional import auroc
 
 from CustomConv1d import CustomConv1d
+from dataset import SequenceDataModule
 
 # from torchviz import make_dot
 
@@ -43,9 +44,6 @@ class SimpleModel(pl.LightningModule):
         self.l1_lambda = l1_lambda
         self.l2_lambda = l2_lambda
         self.lr = lr
-
-        # true positive chromosomes
-        self.tp_chroms = []
 
         if convolution_type == 'custom':
             print('using CUSTOM convolution')
@@ -157,13 +155,13 @@ class SimpleModel(pl.LightningModule):
         X_fw, X_rv, y, c = test_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-        print('logits')
-        print(logits)
-        print('y')
-        print(y)
-        print('chroms')
-        print(c)
+
+        print('logits', logits)
+        print('y', y)
+        print('c', c)
+
         exit()
+
 
         metrics = self.test_metrics(logits, y.type(torch.int))
 
@@ -210,7 +208,25 @@ def main():
         dropout_p=None,
         lr=1e-3
     )
-    ret = model(torch.ones(64, 4, 156), torch.ones(64, 4, 156))
+    trainer = pl.Trainer(
+        max_epochs=1,
+        deterministic=True,
+        gpus=-1,
+        auto_select_gpus=True
+        )
+    dataModule = SequenceDataModule('../globals/datasets/matrix/EBNA2-Mutu3', 'seq.fa', 'out.dat', batch_size=64, for_test='both')
+    trainer.fit(model, dataModule)
+    trainer.test(model, SequenceDataModule('../globals/datasets/matrix/EBNA2-Mutu3', 'seq.fa', 'out.dat', batch_size=512, for_test='train'))
+    # print('\n*** *** *** for train *** *** ***')
+    # train_metrics = trainer.test(model, datamodule=SequenceDataModule(
+    #     os.path.join(DDIR, params['data_dir']),
+    #     params['sequence_file'],
+    #     params['label_file'],
+    #     batch_size=512,
+    #     for_test=train_on
+    # ), verbose=False)[0]
+    
+
 
     # dot = make_dot(ret.mean(), params=dict(model.named_parameters()))
     # dot.format = 'png'

@@ -142,15 +142,16 @@ class SequenceDataModule(pl.LightningDataModule):
 def main():
     # data_module = SequenceDataModule(
     #     'dataset1', 'SRR3101734_seq.fa', 'SRR3101734_out.dat', batch_size=64)
-    data_module = SequenceDataModule(
-        'dataset2', 'SRR5241432_seq.fa', 'SRR5241432_out.dat', batch_size=64)
+    data_module = SequenceDataModule('../globals/datasets/matrix/EBNA2-Mutu3', 'seq.fa', 'out.dat', batch_size=64, for_test='both')
     data_module.prepare_data()
     data_module.setup(stage='fit')
     torch.set_printoptions(threshold=10)
-    for a, b, c in data_module.train_dataloader():
+    for a, b, c, d in data_module.train_dataloader():
+        d = list(d)
         print(a.shape)
         print(b.shape)
         print(c.shape)
+        print(len(d))
         break
     print(data_module.sequence_length())
 
