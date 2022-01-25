@@ -23,7 +23,7 @@ case $1 in
         ;;
         *)
             echo 'running tensorboard'
-            python3 -m tensorboard.main --logdir ../globals/$2_fold_lightning_logs/matrix/EBNA2-Mutu3
+            python3 -m tensorboard.main --logdir ../globals/$2_fold_lightning_logs/matrix/EBNA3ABC-Mutu3
         ;;
         esac
     ;;

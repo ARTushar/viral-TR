@@ -44,6 +44,9 @@ class SimpleModel(pl.LightningModule):
         self.l2_lambda = l2_lambda
         self.lr = lr
 
+        # true positive chromosomes
+        self.tp_chroms = []
+
         if convolution_type == 'custom':
             print('using CUSTOM convolution')
             self.conv1d = CustomConv1d(
@@ -129,7 +132,7 @@ class SimpleModel(pl.LightningModule):
     def training_step(self, train_batch: Tensor, batch_idx: int) -> Tensor:
         # define the training loop
 
-        X_fw, X_rv, y = train_batch
+        X_fw, X_rv, y, _ = train_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
 
@@ -141,7 +144,7 @@ class SimpleModel(pl.LightningModule):
         return loss
 
     def validation_step(self, val_batch: Tensor, batch_idx: int) -> None:
-        X_fw, X_rv, y = val_batch
+        X_fw, X_rv, y, _ = val_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
 
@@ -151,9 +154,16 @@ class SimpleModel(pl.LightningModule):
         self.log_dict(metrics, on_epoch=True, on_step=False, prog_bar=True)
 
     def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
-        X_fw, X_rv, y = test_batch
+        X_fw, X_rv, y, c = test_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
+        print('logits')
+        print(logits)
+        print('y')
+        print(y)
+        print('chroms')
+        print(c)
+        exit()
 
         metrics = self.test_metrics(logits, y.type(torch.int))
 

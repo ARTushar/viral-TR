@@ -14,7 +14,7 @@ SEED = 4
 pl.seed_everything(SEED, workers=True)
 
 data_dir = 'matrix/EBNA2-Mutu3'
-version = 54
+version = 44
 ckpt_dir = os.path.join(GDIR, 'saved_models', data_dir, f'version_{version}.ckpt')
 
 model = SimpleModel.load_from_checkpoint(ckpt_dir)

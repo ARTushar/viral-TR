@@ -27,13 +27,14 @@ elif 'server' in device:
 # splitter('./dataset', 'sequences.fa', 'wt_readout.dat', 4)
 
 class CustomSequenceDataset(Dataset):
-    def __init__(self, sequences: list, labels: list, transform: Callable=None, target_transform: Callable=None) -> None:
+    def __init__(self, sequences: list, labels: list, transform: Callable=None, target_transform: Callable=None, chroms=None) -> None:
         super().__init__()
 
         mx_len = max(len(seq) for seq in sequences)
 
         self.forward_sequences, self.reverse_sequences = transform(sequences, mx_len)
         self.labels = target_transform(labels)
+        self.chroms = chroms
 
         # self.forward_sequences = self.forward_sequences[0:128]
         # self.reverse_sequences = self.reverse_sequences[0:128]
@@ -48,8 +49,9 @@ class CustomSequenceDataset(Dataset):
         fw = self.forward_sequences[index]
         rv = self.reverse_sequences[index]
         y = self.labels[index]
+        c = self.chroms[index]
 
-        return fw, rv, y
+        return fw, rv, y, c
 
 
 class SequenceDataModule(pl.LightningDataModule):
@@ -70,12 +72,13 @@ class SequenceDataModule(pl.LightningDataModule):
     def get_all(self) -> Tuple:
         raw_file_in = os.path.join(self.directory, 'raw', self.file_in)
         raw_file_out = os.path.join(self.directory, 'raw', self.file_out)
-        raw_sequences, raw_labels = read_samples(raw_file_in, raw_file_out)
-        data = list(zip(raw_sequences, raw_labels))
+        raw_chroms, raw_sequences, raw_labels = read_samples(raw_file_in, raw_file_out, True)
+        data = list(zip(raw_sequences, raw_labels, raw_chroms))
         random.shuffle(data)
-        raw_sequences = [a for a, b in data]
-        raw_labels = [b for a, b in data]
-        return raw_sequences, raw_labels
+        raw_sequences = [a for a, b, c in data]
+        raw_labels = [b for a, b, c in data]
+        raw_chroms = [c for a, b, c in data]
+        return raw_sequences, raw_labels, raw_chroms
 
     def setup(self, stage: Optional[str] = None):
         train_file_in = os.path.join(self.directory, 'train', self.file_in)
@@ -85,38 +88,39 @@ class SequenceDataModule(pl.LightningDataModule):
         test_file_in = os.path.join(self.directory, 'test', self.file_in)
         test_file_out = os.path.join(self.directory, 'test', self.file_out)
 
-        train_sequences, train_labels = read_samples(
-            train_file_in, train_file_out)
-        cv_sequences, cv_labels = read_samples(cv_file_in, cv_file_out)
+        t_chroms, train_sequences, train_labels = read_samples(
+            train_file_in, train_file_out, True)
+        v_chroms, cv_sequences, cv_labels = read_samples(cv_file_in, cv_file_out, True)
+
 
         if stage == 'fit':
             if self.for_test == 'both':
                 self.train_data = CustomSequenceDataset(
-                 [*train_sequences, *cv_sequences], [*train_labels, *cv_labels], transform_all_sequences, transform_all_labels)
+                 [*train_sequences, *cv_sequences], [*train_labels, *cv_labels], transform_all_sequences, transform_all_labels, [*t_chroms, *v_chroms])
             if self.for_test == 'all':
-                raw_sequences, raw_labels = self.get_all()
+                raw_sequences, raw_labels, raw_chroms = self.get_all()
                 self.train_data = CustomSequenceDataset(
-                    raw_sequences, raw_labels, transform_all_sequences, transform_all_labels)
+                    raw_sequences, raw_labels, transform_all_sequences, transform_all_labels, raw_chroms)
             else:
                 self.train_data = CustomSequenceDataset(
-                    train_sequences, train_labels, transform_all_sequences, transform_all_labels)
+                    train_sequences, train_labels, transform_all_sequences, transform_all_labels, t_chroms)
             self.val_data = CustomSequenceDataset(
-                cv_sequences, cv_labels, transform_all_sequences, transform_all_labels)
+                cv_sequences, cv_labels, transform_all_sequences, transform_all_labels, v_chroms)
 
         if stage == 'test':
             if self.for_test == 'train':
                 self.test_data = CustomSequenceDataset(
-                 train_sequences, train_labels, transform_all_sequences, transform_all_labels)
+                 train_sequences, train_labels, transform_all_sequences, transform_all_labels, t_chroms)
             elif self.for_test == 'val':
                 self.test_data = CustomSequenceDataset(
-                 cv_sequences, cv_labels, transform_all_sequences, transform_all_labels)
+                 cv_sequences, cv_labels, transform_all_sequences, transform_all_labels, v_chroms)
             elif self.for_test == 'both':
                 self.test_data = CustomSequenceDataset(
-                 [*cv_sequences, *train_sequences], [*cv_labels, *train_labels], transform_all_sequences, transform_all_labels)
+                 [*cv_sequences, *train_sequences], [*cv_labels, *train_labels], transform_all_sequences, transform_all_labels, [*v_chroms, *t_chroms])
             elif self.for_test == 'all':
-                raw_sequences, raw_labels = self.get_all()
+                raw_sequences, raw_labels, raw_chroms = self.get_all()
                 self.test_data = CustomSequenceDataset(
-                    raw_sequences, raw_labels, transform_all_sequences, transform_all_labels)
+                    raw_sequences, raw_labels, transform_all_sequences, transform_all_labels, raw_chroms)
 
 
     def train_dataloader(self):
