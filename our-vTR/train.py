@@ -91,43 +91,6 @@ def train(params: Dict) -> None:
     params['best_score'] = float(early_stopper.best_score)
 
     print('\n*** *** *** for train *** *** ***')
-    init_metrics = trainer.test(model, datamodule=SequenceDataModule(
-        os.path.join(DDIR, params['data_dir']),
-        params['sequence_file'],
-        params['label_file'],
-        batch_size=512,
-        for_test=train_on
-    ), verbose=False)[0]
-    print(json.dumps(init_metrics, indent=4))
-
-    motif_rank = []
-
-    for i in range(params['kernel_count']):
-        print('\n--------------')
-        print(f'nullifying {i}')
-        model.nullify(i)
-        test_metrics = trainer.test(model, datamodule=SequenceDataModule(
-            os.path.join(DDIR, params['data_dir']),
-            params['sequence_file'],
-            params['label_file'],
-            batch_size=512,
-            for_test=train_on
-        ), verbose=False)[0]
-        for key in test_metrics.keys():
-            test_metrics[key] -= init_metrics[key]
-        print(json.dumps(test_metrics, indent=4))
-        print('--------------\n')
-        motif_rank.append((100*test_metrics['testAccuracy'], i))
-
-    motif_rank.sort()
-
-    with open('EBNA2-IB4-zero-ranks.txt', 'w') as f:
-        for motif in motif_rank:
-            print(motif, file=f)
-
-    return
-
-    print('\n*** *** *** for train *** *** ***')
     train_metrics = trainer.test(model, datamodule=SequenceDataModule(
         os.path.join(DDIR, params['data_dir']),
         params['sequence_file'],
@@ -170,8 +133,6 @@ def train(params: Dict) -> None:
 
     print(json.dumps(train_metrics, indent=4))
     print(json.dumps(val_metrics, indent=4))
-
-    return
 
     train_in = os.path.join(DDIR, params['data_dir'], 'train', params['sequence_file'])
     train_out = os.path.join(DDIR, params['data_dir'], 'train', params['label_file'])
