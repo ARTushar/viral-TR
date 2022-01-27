@@ -43,12 +43,16 @@ class CustomConv1d(nn.Conv1d):
 
     def forward(self, input: Tensor) -> Tensor:
         use_weight = self.weight
-        if self.exclude_idx is not None:
-            use_weight[self.exclude_idx] = 0
 
         if self.run_value > 2:
             w_to_cpu = self.weight.type_as(self.distr_log)
-            use_weight = torch.stack([self.calculate(w) for w in w_to_cpu])
+            use_weight = torch.stack([w for w in w_to_cpu])
+
+            if self.exclude_idx is not None:
+                for idx in self.exclude_idx:
+                    use_weight[idx] = 0
+
+            use_weight = torch.stack([self.calculate(w) for w in use_weight])
 
         self.run_value += 1
         return self._conv_forward(input, use_weight.type_as(input), self.bias)

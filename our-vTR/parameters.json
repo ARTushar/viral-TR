@@ -1,5 +1,5 @@
 {
-    "data_dir": "matrix/EBNA3ABC-Mutu3",
+    "data_dir": "matrix/EBNALP-IB4",
     "sequence_file": "seq.fa",
     "label_file": "out.dat",
     "distribution": [0.3, 0.2, 0.2, 0.3],
@@ -7,15 +7,15 @@
     "n_splits": 10,
     "stratify": true,
     "alpha": 20,
-    "beta": 0.050,
+    "beta": 5e-2,
     "learning_rate": 1e-3,
-    "epochs": 30,
+    "epochs": 13,
     "convolution_type": "custom",
-    "kernel_size": 14,
+    "kernel_size": 10,
     "kernel_count": 16,
     "pool_type": "max",
     "linear_layer_shapes": [32],
-    "l1_lambda": 4e-3,
+    "l1_lambda": 1e-3,
     "l2_lambda": 0,
     "dropout_p": 0
 }
