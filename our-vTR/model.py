@@ -7,10 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.optimizer import Optimizer
 from torchmetrics import Accuracy, F1, MetricCollection, Precision, Recall, AUROC
-from torchmetrics.functional import auroc
+from torchmetrics.functional import auroc, confusion_matrix
 
 from CustomConv1d import CustomConv1d
 from dataset import SequenceDataModule
+from utils.tp_chroms import get_tp_chroms
 
 # from torchviz import make_dot
 
@@ -44,6 +45,9 @@ class SimpleModel(pl.LightningModule):
         self.l1_lambda = l1_lambda
         self.l2_lambda = l2_lambda
         self.lr = lr
+
+        # tp chroms
+        self.tp_chroms = []
 
         if convolution_type == 'custom':
             print('using CUSTOM convolution')
@@ -151,23 +155,31 @@ class SimpleModel(pl.LightningModule):
         self.log('valLoss', loss, on_epoch=True, on_step=False, prog_bar=True)
         self.log_dict(metrics, on_epoch=True, on_step=False, prog_bar=True)
 
-    def test_step(self, test_batch: Tensor, batch_idx: int) -> None:
+    def test_step(self, test_batch: Tensor, batch_idx: int):
         X_fw, X_rv, y, c = test_batch
         logits = self.forward(X_fw, X_rv)
         loss = self.cross_entropy_loss(logits, y)
-
-        print('logits', logits)
-        print('y', y)
-        print('c', c)
-
-        exit()
-
+        c = list(c)
+        self.tp_chroms.extend(get_tp_chroms(logits, y, c))
 
         metrics = self.test_metrics(logits, y.type(torch.int))
 
         self.log('testLoss', loss)
         self.log('testAUROC', auroc(logits, y.type(torch.int), num_classes=2))
         self.log_dict(metrics)
+
+
+        return {'logits':logits, 'y': y}
+
+
+
+    def test_epoch_end(self, outputs) -> None:
+        logits = torch.cat([t['logits'] for t in outputs])
+        y = torch.cat([t['y'] for t in outputs])
+        y = torch.argmax(y, 1)
+        cf_mat = confusion_matrix(logits, y, num_classes=2)
+        print()
+        print('confusion matrix: ', cf_mat)
 
     def configure_optimizers(self) -> Optimizer:
         parameters = self.parameters()
