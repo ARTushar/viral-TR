@@ -37,6 +37,10 @@ def read_seqs(input_file):
     return seqs
 
 
+def get_true_pos_seqs(seqs):
+    model = 
+
+
 pos = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 
 
@@ -56,7 +60,7 @@ def make_heatmap():
     kernels = read_kernels(motif_file)
     seqs = read_seqs(data_file)
 
-    with open(f'heatmap_{vtf}_mx.txt', 'w') as f:
+    with open(f'heatmap_{vtf}_mx_tp.txt', 'w') as f:
         for seq in seqs[0:100]:
             for kernel in kernels:
                 print(f'{apply_kernel(kernel, seq):.6f}', end=' ', file=f)
@@ -65,7 +69,7 @@ def make_heatmap():
 
 def draw_heatmap():
     vec = []
-    with open(f'heatmap_{vtf}_mx.txt') as f:
+    with open(f'heatmap_{vtf}_mx_tp.txt') as f:
         vec = [list(map(float, line.split())) for line in f]
     vec = np.array(vec)
     plt.imshow(vec.T, cmap='hot', interpolation='nearest')
