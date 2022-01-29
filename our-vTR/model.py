@@ -188,8 +188,8 @@ class SimpleModel(pl.LightningModule):
 def main():
     model = SimpleModel(
         convolution_type='custom',
-        kernel_size=12,
-        kernel_count=512,
+        kernel_size=14,
+        kernel_count=16,
         alpha=1000,
         beta=1/1000,
         distribution=(0.3, 0.2, 0.2, 0.3),

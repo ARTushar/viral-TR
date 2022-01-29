@@ -4,17 +4,19 @@ import numpy as np
 
 motif_base = '/home/redwan/Documents/L4-T2/Thesis/memesuite-results/cv-best-motifs/'
 data_base = '/home/redwan/Documents/L4-T2/Thesis/viral-TR/globals/datasets/matrix/'
+bed_base = '/home/redwan/Documents/L4-T2/Thesis/viral-TR/globals/tp_beds/matrix/'
 kernel_size = 14
-kernel_count = 16
-version = 18
-vtf = 'HBZ-ST1'
+kernel_count = 12
+version = 6
+vtf = 'EBNA2-IB4'
 motif_file = motif_base + f'{version}-{vtf}' + '/motif.meme'
 data_file = data_base + vtf + '/raw/seq.fa'
+bed_file = bed_base + vtf + f'/{version}.bed'
 
 
-def read_kernels(input_file):
+def read_kernels():
     kernels = []
-    with open(input_file) as f:
+    with open(motif_file) as f:
         for _ in range(8):
             f.readline()
 
@@ -26,19 +28,20 @@ def read_kernels(input_file):
     return kernels
 
 
-def read_seqs(input_file):
+def read_seqs():
+    with open(bed_file) as f:
+        valids = ['_'.join(line.split()[:3] + ['pos']) for line in f]
+
     seqs = []
-    with open(input_file) as f:
+    with open(data_file) as f:
         while True:
             chrom = f.readline()
             if not chrom: break
+            chrom = '_'.join(chrom.split('_')[:4])[1:]
             seq = f.readline().strip()
-            seqs.append(seq)
+            if chrom in valids:
+                seqs.append(seq)
     return seqs
-
-
-def get_true_pos_seqs(seqs):
-    model = 
 
 
 pos = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
@@ -55,10 +58,9 @@ def apply_kernel(kernel, seq):
     return prob_res
 
 
-
 def make_heatmap():
-    kernels = read_kernels(motif_file)
-    seqs = read_seqs(data_file)
+    kernels = read_kernels()
+    seqs = read_seqs()
 
     with open(f'heatmap_{vtf}_mx_tp.txt', 'w') as f:
         for seq in seqs[0:100]:
@@ -76,5 +78,5 @@ def draw_heatmap():
     plt.show()
 
 
-# make_heatmap()
+make_heatmap()
 draw_heatmap()
