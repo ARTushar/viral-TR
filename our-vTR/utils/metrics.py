@@ -1,5 +1,6 @@
 import os, csv
 from pytorch_lightning import LightningModule, Trainer
+import torch
 from torch.utils.data import DataLoader
 from typing import Dict, Tuple
 from datetime import date
@@ -53,7 +54,11 @@ def log_metrics(directory: str, logs: Dict) -> None:
         dictWriter.writerow(logs)
 
 
+
 if __name__ == '__main__':
     d = {"ami": 2, "atumi": 1}
     change_keys(d, 'hi', 'a')
     print(d)
+    # logits = torch.Tensor([[.4, .4], [.1, .9], [.4, .6]])
+    # y = torch.Tensor([[1, 0], [1, 0], [0, 1]])
+    # chroms = ['chrom_1', 'chrom_2', 'chrom_3']
