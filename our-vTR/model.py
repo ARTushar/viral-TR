@@ -116,6 +116,7 @@ class SimpleModel(pl.LightningModule):
             pooled = F.avg_pool1d(merged, kernel_size=2*(seq_length-self.conv1d.kernel_size[0]+1))
         flat = pooled.flatten(1, -1)
         line = self.linears(flat)
+        probs = line
         # probs = F.softmax(line, dim=1)
 
         if PRINT:
