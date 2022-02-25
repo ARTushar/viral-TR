@@ -39,8 +39,8 @@ def generate_tp_bed_file(dataset_name, version):
 	tp_chroms_to_bed_file(model.tp_chroms, data_dir, version)
 
 if __name__ == '__main__':
-    dataset_name = 'HBZ-ST1'
-    version = 18
+    dataset_name = 'EBNALP-IB4'
+    version = 72
     generate_tp_bed_file(dataset_name, version)
 
 
