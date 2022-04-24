@@ -329,4 +329,4 @@ def aggregate(version: int):
 
 if __name__ == '__main__':
     main()
-    # aggregate(0)
+    # aggregate(32)
